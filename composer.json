@@ -38,7 +38,7 @@
     "suggest": {
         "phpcraft/database": "For database integration (SectionWithDatabase class)",
         "phpcraft/message": "For CRUD integration (SectionWithCRUD class)",
-        "phpcraft/csv": "For CRUD integration (SectionWithCRUD class)",
+        "phpcraft/csv": "For CRUD integration (SectionWithCRUD class)"
     },
     "autoload": {
         "psr-4" : {
