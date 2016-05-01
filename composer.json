@@ -15,10 +15,6 @@
         },
         {
             "type": "vcs",
-            "url": "https://github.com/vukbgit/PHPCraft.Cookie"
-        },
-        {
-            "type": "vcs",
             "url": "https://github.com/vukbgit/PHPCraft.Database"
         },
         {
@@ -33,7 +29,7 @@
     "require": {
         "patricklouys/http": "^1.3",
         "phpcraft/template": "dev-master",
-        "phpcraft/cookie": "1.0"
+        "phpcraft/cookie": "1.*"
     },
     "suggest": {
         "phpcraft/database": "For database integration (SectionWithDatabase class)",
