@@ -97,11 +97,13 @@ class Section
      * adds a translations ini file content to section translations
      * @param string $key key of file content into translations array
      * @param string $pathToIniFile file path into private/local/locale/
+     * @param string $folder subfolder of private to look translations into
      * @throws InvalidArgumentException if file is not found
      **/
-    public function addTranslations($key, $pathToIniFile)
+    public function addTranslations($key, $pathToIniFile, $folder = false)
     {
-        $path = PATH_TO_ROOT . 'private/' . $this->application . '/locale/' . $pathToIniFile;
+        if(!$folder) $folder = $this->application;
+        $path = PATH_TO_ROOT . 'private/' . $folder . '/locale/' . $pathToIniFile;
         if(!is_file($path)) {
             throw new \InvalidArgumentException("Path to " . $path . " is not valid");
         } else {
