@@ -172,7 +172,7 @@ abstract class SectionWithCRUD extends SectionWithDatabase
             $input = filter_input_array(INPUT_POST, $variablesDefinitions);
             foreach ($input as $filterByField => $value) {
                 $this->cookieBuilder->set('filter-by['.$this->section.']['.$filterByField.']', $value,self::PERMANENT_COOKIES_LIFE);
-                if($value !== '') $this->templateParameters['filterBy'][$this->section][$filterByField] = $value;
+                if($value !== '' && $value !== false) $this->templateParameters['filterBy'][$this->section][$filterByField] = $value;
                 else unset($this->templateParameters['filterBy'][$this->section][$filterByField]);
             }
         }
