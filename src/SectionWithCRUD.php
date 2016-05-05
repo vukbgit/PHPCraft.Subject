@@ -171,9 +171,13 @@ abstract class SectionWithCRUD extends SectionWithDatabase
         if(isset($_POST['filter-by'])){
             $input = filter_input_array(INPUT_POST, $variablesDefinitions);
             foreach ($input as $filterByField => $value) {
-                $this->cookieBuilder->set('filter-by['.$this->section.']['.$filterByField.']', $value,self::PERMANENT_COOKIES_LIFE);
-                if($value !== '' && $value !== false) $this->templateParameters['filterBy'][$this->section][$filterByField] = $value;
-                else unset($this->templateParameters['filterBy'][$this->section][$filterByField]);
+                if($value !== '' && $value !== false) {
+                    $this->cookieBuilder->set('filter-by[' .$this->section .'][' .$filterByField .']', $value,self::PERMANENT_COOKIES_LIFE);
+                    $this->templateParameters['filterBy'][$this->section][$filterByField] = $value;
+                } else {
+                    $this->cookieBuilder->delete('filter-by[' . $this->section . '][' . $filterByField .']');
+                    unset($this->templateParameters['filterBy'][$this->section][$filterByField]);
+                }
             }
         }
         if(!isset($this->templateParameters['filterBy'][$this->section])) $this->templateParameters['filterBy'][$this->section] = array();
