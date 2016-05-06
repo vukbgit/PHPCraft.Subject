@@ -16,7 +16,7 @@ use PHPCraft\Csv\CsvInterface;
 
 abstract class SectionWithCRUD extends SectionWithDatabase
 {
-    use TitledSectionTrait, SectionWithNavigationTrait;
+    use TitledSectionTrait, SectionWithNavigationTrait, SectionWithGlobalActionsTrait;
 
     /**
      * life of very persisten cookies in seconds (157680000 = 5 years)
