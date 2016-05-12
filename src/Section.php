@@ -169,4 +169,14 @@ class Section
     {
         $this->areaAuthentication = $authenticated;
     }
+    
+    /**
+     * Sets a template parameter
+     * @param string $key;
+     * @param mixed $value;
+     **/
+    public function setTemplateParameter($key, $value)
+    {
+        $this->templateParameters[$key] = $value;
+    }
 }
