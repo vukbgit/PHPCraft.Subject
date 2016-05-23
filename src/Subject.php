@@ -1,17 +1,17 @@
 <?php
 /**
- * manages a PHPCraft section
+ * manages a PHPCraft subject
  * @author vuk <http://vuk.bg.it>
  */
 
-namespace PHPCraft\Section;
+namespace PHPCraft\Subject;
 
 use Http\Request;
 use Http\Response;
 use PHPCraft\Template\RendererInterface;
 use PHPCraft\Cookie\CookieBuilderInterface;
 
-class Section
+class Subject
 {
     protected $request;
     protected $response;
@@ -20,7 +20,7 @@ class Section
     protected $application;
     protected $basePath;
     protected $area;
-    protected $section;
+    protected $subject;
     protected $action;
     protected $routePlaceholders;
     protected $templateParameters;
@@ -36,7 +36,7 @@ class Section
      * @param string $application current PHPCraft application
      * @param string $basePath path from domain root to application root (with trailing and ending slash)
      * @param string $area current PHPCraft area
-     * @param string $section current PHPCraft section
+     * @param string $subject current PHPCraft subject
      * @param string $action current PHPCraft action
      * @param string $language current PHPCraft language code
      * @param array $routePlaceholders informations extracted from current request by route matching pattern
@@ -49,7 +49,7 @@ class Section
         $application,
         $basePath,
         $area,
-        $section,
+        $subject,
         $action,
         $language,
         $routePlaceholders = array()
@@ -61,7 +61,7 @@ class Section
         $this->application = $application;
         $this->basePath = $basePath;
         $this->area = $area;
-        $this->section = $section;
+        $this->subject = $subject;
         $this->action = $action;
         $this->language = $language;
         $this->routePlaceholders = $routePlaceholders;
@@ -70,31 +70,31 @@ class Section
             'basePath' => $basePath,
             'requestedUri' => $request->getUri(),
             'area' => $this->area,
-            'section' => $this->section,
+            'subject' => $this->subject,
             'action' => $this->action,
             'language' => $this->language
         );
         $this->translations = array();
-        $this->getPathToSection();
+        $this->getPathToSubject();
     }
     
     /**
-     * stores the path to current section
+     * stores the path to current subject
      **/
-    public function getPathToSection(){
+    public function getPathToSubject(){
         $uriFragments = explode('/',$this->request->getUri());
-        $pathToSection = [];
+        $pathToSubject = [];
         foreach((array) $uriFragments as $fragment) {
-            if($fragment == $this->section) {
+            if($fragment == $this->subject) {
                 break;
             }
-            $pathToSection[] = $fragment;
+            $pathToSubject[] = $fragment;
         }
-        $this->templateParameters['pathToSection'] = implode('/',$pathToSection);
+        $this->templateParameters['pathToSubject'] = implode('/',$pathToSubject);
     }
     
     /**
-     * adds a translations ini file content to section translations
+     * adds a translations ini file content to subject translations
      * @param string $key key of file content into translations array
      * @param string $pathToIniFile file path into private/local/locale/
      * @param string $folder subfolder of private to look translations into
@@ -123,7 +123,7 @@ class Section
             $this->getBackPaths();
             $this->{'exec'.ucfirst($this->action)}();
         } catch(Exception $exception) {
-            throw new Exception(sprintf('no method for handling %s %s %s', $this->area, $this->section, $this->action));
+            throw new Exception(sprintf('no method for handling %s %s %s', $this->area, $this->subject, $this->action));
         }
     }
     

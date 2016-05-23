@@ -1,9 +1,9 @@
 <?php
-namespace PHPCraft\Section;
+namespace PHPCraft\Subject;
 
-trait SectionWithNavigationTrait {
+trait SubjectWithNavigationTrait {
     
-    protected $sectionBaseUrl;
+    protected $subjectBaseUrl;
     /**
      * stores navigation structures as array
      * @param array $navigations
@@ -13,11 +13,11 @@ trait SectionWithNavigationTrait {
     }
     
     /**
-     * sets current section base url
+     * sets current subject base url
      * @param array $href
      */
-    public function setSectionBaseUrl($url) {
-        $this->sectionBaseUrl = $url;
-        $this->templateParameters['sectionBaseUrl'] = $url;
+    public function setSubjectBaseUrl($url) {
+        $this->subjectBaseUrl = $url;
+        $this->templateParameters['subjectBaseUrl'] = $url;
     }
 }

@@ -1,10 +1,10 @@
 <?php
 /**
- * manages a PHPCraft section with CRUD functionalities
+ * manages a PHPCraft subject with CRUD functionalities
  * @author vuk <http://vuk.bg.it>
  */
 
-namespace PHPCraft\Section;
+namespace PHPCraft\Subject;
 
 use Http\Request;
 use Http\Response;
@@ -12,7 +12,7 @@ use PHPCraft\Template\RendererInterface;
 use PHPCraft\Cookie\CookieBuilderInterface;
 use PHPCraft\Database\QueryBuilderInterface;
 
-class SectionWithDatabase extends Section
+class SubjectWithDatabase extends Subject
 {
     protected $queryBuilder;
     protected $table;
@@ -29,7 +29,7 @@ class SectionWithDatabase extends Section
      * @param string $application current PHPCraft application
      * @param string $basePath path from domain root to application root (with trailing and ending slash)
      * @param string $area current PHPCraft area
-     * @param string $section current PHPCraft section
+     * @param string $subject current PHPCraft subject
      * @param string $action current PHPCraft action
      * @param string $language current PHPCraft language code
      * @param array $routePlaceholders informations extracted from current request by route matching pattern
@@ -43,12 +43,12 @@ class SectionWithDatabase extends Section
         $application,
         $basePath,
         $area,
-        $section,
+        $subject,
         $action,
         $language,
         $routePlaceholders = array()
     ) {
-        parent::__construct($request, $response, $templateRenderer, $cookieBuilder, $application, $basePath, $area, $section, $action, $language, $routePlaceholders);
+        parent::__construct($request, $response, $templateRenderer, $cookieBuilder, $application, $basePath, $area, $subject, $action, $language, $routePlaceholders);
         $this->queryBuilder = $queryBuilder;
         
     }

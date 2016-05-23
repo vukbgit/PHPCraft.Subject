@@ -1,15 +1,15 @@
 <?php
-namespace PHPCraft\Section;
+namespace PHPCraft\Subject;
 
-trait TitledSectionTrait {
+trait TitledSubjectTrait {
 
     /**
      * sets page title
-     * @param string $sectionTitle
+     * @param string $subjectTitle
      */
-    protected function setPageTitle($sectionTitle) {
+    protected function setPageTitle($subjectTitle) {
         $this->templateParameters['page_title'] = 
-            $sectionTitle
+            $subjectTitle
             . '::' .
             sprintf($this->translations[$this->application]['page_title'], $this->translations[$this->application]['application']);
     }    

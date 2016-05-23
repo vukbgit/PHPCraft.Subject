@@ -1,10 +1,10 @@
 <?php
 /**
- * manages a PHPCraft section with CRUD functionalities
+ * manages a PHPCraft subject with CRUD functionalities
  * @author vuk <http://vuk.bg.it>
  */
 
-namespace PHPCraft\Section;
+namespace PHPCraft\Subject;
 
 use Http\Request;
 use Http\Response;
@@ -14,9 +14,9 @@ use PHPCraft\Database\QueryBuilderInterface;
 use PHPCraft\Message\Message;
 use PHPCraft\Csv\CsvInterface;
 
-abstract class SectionWithCRUD extends SectionWithDatabase
+abstract class SubjectWithCRUD extends SubjectWithDatabase
 {
-    use TitledSectionTrait, SectionWithNavigationTrait, SectionWithGlobalActionsTrait;
+    use TitledSubjectTrait, SubjectWithNavigationTrait, SubjectWithGlobalActionsTrait;
 
     /**
      * life of very persisten cookies in seconds (157680000 = 5 years)
@@ -41,7 +41,7 @@ abstract class SectionWithCRUD extends SectionWithDatabase
      * @param string $application current PHPCraft application
      * @param string $basePath path from domain root to application root (with trailing and ending slash)
      * @param string $area current PHPCraft area
-     * @param string $section current PHPCraft section
+     * @param string $subject current PHPCraft subject
      * @param string $action current PHPCraft action
      * @param string $language current PHPCraft language code
      * @param string $dbTable database table name
@@ -61,7 +61,7 @@ abstract class SectionWithCRUD extends SectionWithDatabase
         $application,
         $basePath,
         $area,
-        $section,
+        $subject,
         $action,
         $language,
         $dbTable = false,
@@ -70,7 +70,7 @@ abstract class SectionWithCRUD extends SectionWithDatabase
         $exportFields = false,
         $routePlaceholders = array()
     ) {
-        parent::__construct($request, $response, $templateRenderer, $cookieBuilder, $queryBuilder, $application, $basePath, $area, $section, $action, $language, $routePlaceholders);
+        parent::__construct($request, $response, $templateRenderer, $cookieBuilder, $queryBuilder, $application, $basePath, $area, $subject, $action, $language, $routePlaceholders);
         $this->message = $message;
         $this->message->setCookieBuilder($cookieBuilder);
         $this->csv = $csv;
@@ -87,7 +87,7 @@ abstract class SectionWithCRUD extends SectionWithDatabase
      **/
     public function execAction()
     {
-        $this->templateParameters['section_title'] = $this->translations[$this->section]['section_title'];
+        $this->templateParameters['subject_title'] = $this->translations[$this->subject]['subject_title'];
         $this->templateParameters['primaryKey'] = $this->primaryKey;
         $this->templateParameters['translations'] = $this->translations;
         parent::execAction();
@@ -109,9 +109,9 @@ abstract class SectionWithCRUD extends SectionWithDatabase
         $this->templateParameters['records'] = $this->getList();
         //template parameters
         $this->templateParameters['messages'] = $this->message->get('cookies');
-        $this->setPageTitle($this->templateParameters['section_title']);
+        $this->setPageTitle($this->templateParameters['subject_title']);
         //render
-        $html = $this->templateRenderer->render($this->area . '/' . $this->language . '/' . $this->section . '_' . $this->action, $this->templateParameters);
+        $html = $this->templateRenderer->render($this->area . '/' . $this->language . '/' . $this->subject . '_' . $this->action, $this->templateParameters);
         $this->response->setContent($html);
     }
     
@@ -122,17 +122,17 @@ abstract class SectionWithCRUD extends SectionWithDatabase
         $this->templateParameters['orderBy'] = $this->cookieBuilder->get('order-by');
         $orderByField = filter_input(INPUT_POST, 'order-by', FILTER_SANITIZE_STRING);
         if(isset($orderByField)){
-            $direction = (isset($this->templateParameters['orderBy'][$this->section][$orderByField]) && $this->templateParameters['orderBy'][$this->section][$orderByField] == 'ASC') ? 'DESC' : 'ASC';
-            $this->cookieBuilder->set('order-by['.$this->section.']['.$orderByField.']', $direction, self::PERMANENT_COOKIES_LIFE);
-            $this->templateParameters['orderBy'][$this->section][$orderByField] = $direction;
+            $direction = (isset($this->templateParameters['orderBy'][$this->subject][$orderByField]) && $this->templateParameters['orderBy'][$this->subject][$orderByField] == 'ASC') ? 'DESC' : 'ASC';
+            $this->cookieBuilder->set('order-by['.$this->subject.']['.$orderByField.']', $direction, self::PERMANENT_COOKIES_LIFE);
+            $this->templateParameters['orderBy'][$this->subject][$orderByField] = $direction;
         }
         $removeOrderByField = filter_input(INPUT_POST, 'remove-order-by', FILTER_SANITIZE_STRING);
         if(isset($removeOrderByField)){
-            $this->cookieBuilder->delete('order-by['.$this->section.']['.$removeOrderByField.']');
-            unset($this->templateParameters['orderBy'][$this->section][$removeOrderByField]);
+            $this->cookieBuilder->delete('order-by['.$this->subject.']['.$removeOrderByField.']');
+            unset($this->templateParameters['orderBy'][$this->subject][$removeOrderByField]);
         }
-        if (isset($this->templateParameters['orderBy'][$this->section])) {
-            foreach ($this->templateParameters['orderBy'][$this->section] as $field => $direction) {
+        if (isset($this->templateParameters['orderBy'][$this->subject])) {
+            foreach ($this->templateParameters['orderBy'][$this->subject] as $field => $direction) {
                 $this->queryBuilder->orderBy($field, $direction);
             }
         }
@@ -150,15 +150,15 @@ abstract class SectionWithCRUD extends SectionWithDatabase
             $input = filter_input_array(INPUT_POST, $variablesDefinitions);
             foreach ($input as $filterByField => $value) {
                 if($value !== '' && $value !== false) {
-                    $this->cookieBuilder->set('filter-by[' .$this->section .'][' .$filterByField .']', $value,self::PERMANENT_COOKIES_LIFE);
-                    $this->templateParameters['filterBy'][$this->section][$filterByField] = $value;
+                    $this->cookieBuilder->set('filter-by[' .$this->subject .'][' .$filterByField .']', $value,self::PERMANENT_COOKIES_LIFE);
+                    $this->templateParameters['filterBy'][$this->subject][$filterByField] = $value;
                 } else {
-                    $this->cookieBuilder->delete('filter-by[' . $this->section . '][' . $filterByField .']');
-                    unset($this->templateParameters['filterBy'][$this->section][$filterByField]);
+                    $this->cookieBuilder->delete('filter-by[' . $this->subject . '][' . $filterByField .']');
+                    unset($this->templateParameters['filterBy'][$this->subject][$filterByField]);
                 }
             }
         }
-        if(!isset($this->templateParameters['filterBy'][$this->section])) $this->templateParameters['filterBy'][$this->section] = array();
+        if(!isset($this->templateParameters['filterBy'][$this->subject])) $this->templateParameters['filterBy'][$this->subject] = array();
     }
     
     /**
@@ -180,14 +180,14 @@ abstract class SectionWithCRUD extends SectionWithDatabase
         if(empty($columns)){
             $columns = array();
             foreach($this->exportFields as $field){
-                $columns[$field] = ucfirst($this->translations[$this->section][$field]);
+                $columns[$field] = ucfirst($this->translations[$this->subject][$field]);
             }
         }
         //get records
         $this->queryBuilder->setFetchMode(\PDO::FETCH_ASSOC);
         $records = $this->getList(array_keys($columns));
         //set headers
-        $fileName = $fileName ? $fileName : $this->translations[$this->section]['plural'];
+        $fileName = $fileName ? $fileName : $this->translations[$this->subject]['plural'];
         foreach($this->csv->buildHttpHeaders($fileName) as $header => $value) {
             $this->response->setHeader($header, $value);
         }
@@ -215,9 +215,9 @@ abstract class SectionWithCRUD extends SectionWithDatabase
         }
         //template parameters
         $this->templateParameters['messages'] = $this->message->get('cookies');
-        $this->setPageTitle($this->templateParameters['section_title']);
+        $this->setPageTitle($this->templateParameters['subject_title']);
         //render
-        $html = $this->templateRenderer->render($this->area . '/' . $this->language . '/' . $this->section . '_' . $this->action, $this->templateParameters);
+        $html = $this->templateRenderer->render($this->area . '/' . $this->language . '/' . $this->subject . '_' . $this->action, $this->templateParameters);
         $this->response->setContent($html);
     }
     
@@ -229,18 +229,18 @@ abstract class SectionWithCRUD extends SectionWithDatabase
     {
         $input = filter_input_array(INPUT_POST, $arguments);
         $this->queryBuilder->table($this->dbTable);
-        //subsection
+        //subsubject
         if(!$input[$this->primaryKey]) {
             //insert
             try{
                 unset($input[$this->primaryKey]);
                 $recordId = $this->queryBuilder->insert($input);
-                $this->message->save('cookies','success',$this->translations[$this->section]['insert_success']);
+                $this->message->save('cookies','success',$this->translations[$this->subject]['insert_success']);
             } catch(\PDOException $exception) {
                 $error = $this->queryBuilder->handleQueryException($exception);
                 switch($error[0]) {
                     case 'integrity_constraint_violation_duplicate_entry':
-                        $message = $this->translations[$this->section][$error[0].'_'.$error[1]];
+                        $message = $this->translations[$this->subject][$error[0].'_'.$error[1]];
                     break;
                 }
                 $this->message->save('cookies','danger',$message);
@@ -252,19 +252,19 @@ abstract class SectionWithCRUD extends SectionWithDatabase
                 unset($input[$this->primaryKey]);
                 $this->queryBuilder->where($this->primaryKey, $recordId);
                 $this->queryBuilder->update($input);
-                $this->message->save('cookies','success',$this->translations[$this->section]['update_success']);
+                $this->message->save('cookies','success',$this->translations[$this->subject]['update_success']);
             } catch(\PDOException $exception) {
                 $error = $this->queryBuilder->handleQueryException($exception);
                 switch($error[0]) {
                     case 'integrity_constraint_violation_duplicate_entry':
-                        $message = $this->translations[$this->section][$error[0].'_'.$error[1]];
+                        $message = $this->translations[$this->subject][$error[0].'_'.$error[1]];
                     break;
                 }
                 $this->message->save('cookies','danger',$message);
             }
         }
         //redirect to default action
-        $this->response->setHeader('Location', $this->sectionBaseUrl);
+        $this->response->setHeader('Location', $this->subjectBaseUrl);
     }
     
     /**
@@ -280,9 +280,9 @@ abstract class SectionWithCRUD extends SectionWithDatabase
         }
         //template parameters
         $this->templateParameters['messages'] = $this->message->get('cookies');
-        $this->setPageTitle($this->templateParameters['section_title']);
+        $this->setPageTitle($this->templateParameters['subject_title']);
         //render
-        $html = $this->templateRenderer->render($this->area . '/' . $this->language . '/' . $this->section . '_' . $this->action, $this->templateParameters);
+        $html = $this->templateRenderer->render($this->area . '/' . $this->language . '/' . $this->subject . '_' . $this->action, $this->templateParameters);
         $this->response->setContent($html);
     }
     
@@ -297,7 +297,7 @@ abstract class SectionWithCRUD extends SectionWithDatabase
                 $this->queryBuilder->table($this->dbTable);
                 //$this->queryBuilder->where($this->primaryKey,$recordId);
                 $this->queryBuilder->delete([$this->primaryKey => $recordId]);
-                $this->message->save('cookies','success',$this->translations[$this->section]['delete_success']);
+                $this->message->save('cookies','success',$this->translations[$this->subject]['delete_success']);
             } catch(Exception $e) {
                 $error = handleQueryError($e->getCode(),$e->getMessage());
                 $message = $translations[CURRENT_SECTION][$error[0].'_'.$error[1]];
@@ -305,6 +305,6 @@ abstract class SectionWithCRUD extends SectionWithDatabase
             }
         }
         //redirect to default action
-        $this->response->setHeader('Location', $this->sectionBaseUrl);
+        $this->response->setHeader('Location', $this->subjectBaseUrl);
     }
 }

@@ -1,7 +1,7 @@
 {
-    "name": "phpcraft/section",
+    "name": "phpcraft/subject",
     "type": "library",
-    "description": "organize website into sections",
+    "description": "define subjects for PHPCraft model",
     "license": "MIT",
     "authors": [
 	{
@@ -21,7 +21,7 @@
     },
     "autoload": {
         "psr-4" : {
-            "PHPCraft\\Section\\" : "src/"
+            "PHPCraft\\Subject\\" : "src/"
         }
     }
 }
