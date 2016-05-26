@@ -9,9 +9,8 @@
 	}
     ],
     "require": {
-        "patricklouys/http": "^1.3",
-        "phpcraft/template": "dev-master",
-        "phpcraft/cookie": "dev-master"
+        "phpcraft/template": "@dev",
+        "phpcraft/cookie": "@dev"
     },
     "suggest": {
         "phpcraft/database": "For database integration (SectionWithDatabase class)",
