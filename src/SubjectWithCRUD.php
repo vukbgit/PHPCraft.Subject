@@ -48,7 +48,7 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
      * @param string $dbView database view name
      * @param string $primaryKey
      * @param array $exportFields view fields to be selected for export
-     * @param array $routePlaceholders informations extracted from current request by route matching pattern
+     * @param array $routeParameters informations extracted from current request by route matching pattern
      **/
     public function __construct(
         Request $request,
@@ -68,9 +68,9 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
         $dbView = false,
         $primaryKey = false,
         $exportFields = false,
-        $routePlaceholders = array()
+        $routeParameters = array()
     ) {
-        parent::__construct($request, $response, $templateRenderer, $cookieBuilder, $queryBuilder, $application, $basePath, $area, $subject, $action, $language, $routePlaceholders);
+        parent::__construct($request, $response, $templateRenderer, $cookieBuilder, $queryBuilder, $application, $basePath, $area, $subject, $action, $language, $routeParameters);
         $this->message = $message;
         $this->message->setCookieBuilder($cookieBuilder);
         $this->csv = $csv;
@@ -166,7 +166,7 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
      */
     protected function execExport()
     {
-        $this->{'execExport' . $this->routePlaceholders['key']}();
+        $this->{'execExport' . $this->routeParameters['key']}();
     }
     
     /**
@@ -201,7 +201,7 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
      */
     protected function execSaveForm($updateGlobalAction = array())
     {
-        $recordId = isset($this->routePlaceholders['key']) ? $this->routePlaceholders['key'] : false;
+        $recordId = isset($this->routeParameters['key']) ? $this->routeParameters['key'] : false;
         if(!$recordId) {
         //insert
             $this->templateParameters['subAction'] = 'insert';
@@ -272,7 +272,7 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
      */
     protected function execDeleteForm()
     {
-        $recordId = isset($this->routePlaceholders['key']) ? $this->routePlaceholders['key'] : false;
+        $recordId = isset($this->routeParameters['key']) ? $this->routeParameters['key'] : false;
         if($recordId) {
             $this->queryBuilder->table($this->dbView);
             $this->queryBuilder->where($this->primaryKey,$recordId);

@@ -22,7 +22,7 @@ class Subject
     protected $area;
     protected $subject;
     protected $action;
-    protected $routePlaceholders;
+    protected $routeParameters;
     protected $templateParameters;
     protected $translations;
     protected $areaAuthentication = false;
@@ -39,7 +39,7 @@ class Subject
      * @param string $subject current PHPCraft subject
      * @param string $action current PHPCraft action
      * @param string $language current PHPCraft language code
-     * @param array $routePlaceholders informations extracted from current request by route matching pattern
+     * @param array $routeParameters informations extracted from current request by route matching pattern
      **/
     public function __construct(
         Request $request,
@@ -52,7 +52,7 @@ class Subject
         $subject,
         $action,
         $language,
-        $routePlaceholders = array()
+        $routeParameters = array()
     ) {
         $this->request = $request;
         $this->response = $response;
@@ -64,7 +64,7 @@ class Subject
         $this->subject = $subject;
         $this->action = $action;
         $this->language = $language;
-        $this->routePlaceholders = $routePlaceholders;
+        $this->routeParameters = $routeParameters;
         $this->templateParameters = array(
             'application' => $this->application,
             'basePath' => $basePath,

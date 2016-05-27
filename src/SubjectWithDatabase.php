@@ -32,7 +32,7 @@ class SubjectWithDatabase extends Subject
      * @param string $subject current PHPCraft subject
      * @param string $action current PHPCraft action
      * @param string $language current PHPCraft language code
-     * @param array $routePlaceholders informations extracted from current request by route matching pattern
+     * @param array $routeParameters informations extracted from current request by route matching pattern
      **/
     public function __construct(
         Request $request,
@@ -46,9 +46,9 @@ class SubjectWithDatabase extends Subject
         $subject,
         $action,
         $language,
-        $routePlaceholders = array()
+        $routeParameters = array()
     ) {
-        parent::__construct($request, $response, $templateRenderer, $cookieBuilder, $application, $basePath, $area, $subject, $action, $language, $routePlaceholders);
+        parent::__construct($request, $response, $templateRenderer, $cookieBuilder, $application, $basePath, $area, $subject, $action, $language, $routeParameters);
         $this->queryBuilder = $queryBuilder;
         
     }
