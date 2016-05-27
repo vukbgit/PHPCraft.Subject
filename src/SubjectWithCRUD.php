@@ -6,8 +6,9 @@
 
 namespace PHPCraft\Subject;
 
-use Http\Request;
-use Http\Response;
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\StreamInterface;
 use PHPCraft\Template\RendererInterface;
 use PHPCraft\Cookie\CookieBuilderInterface;
 use PHPCraft\Database\QueryBuilderInterface;
@@ -31,8 +32,9 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
 
     /**
      * Constructor.
-     * @param Http\Request $request HTTP request handler instance
-     * @param Http\Response $response HTTP response handler instance
+     * @param Psr\Http\Message\RequestInterface $httpRequest HTTP request handler instance
+     * @param Psr\Http\Message\ResponseInterface $httpResponse HTTP response handler instance
+     * @param Psr\Http\Message\StreamInterface $httpStream HTTP stream handler instance
      * @param PHPCraft\Template\RendererInterface $templateRenderer template renderer instance
      * @param PHPCraft\Database\QueryBuilderInterface $queryBuilder query builder instance
      * @param PHPCraft\Cookie\CookieBuilderInterface $cookieBuilder, instance
@@ -51,8 +53,9 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
      * @param array $routeParameters informations extracted from current request by route matching pattern
      **/
     public function __construct(
-        Request $request,
-        Response $response,
+        RequestInterface $httpRequest,
+        ResponseInterface $httpResponse,
+        StreamInterface $httpStream,
         RendererInterface $templateRenderer,
         CookieBuilderInterface $cookieBuilder,
         QueryBuilderInterface $queryBuilder,
@@ -70,7 +73,7 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
         $exportFields = false,
         $routeParameters = array()
     ) {
-        parent::__construct($request, $response, $templateRenderer, $cookieBuilder, $queryBuilder, $application, $basePath, $area, $subject, $action, $language, $routeParameters);
+        parent::__construct($httpRequest, $httpResponse, $httpStream, $templateRenderer, $cookieBuilder, $queryBuilder, $application, $basePath, $area, $subject, $action, $language, $routeParameters);
         $this->message = $message;
         $this->message->setCookieBuilder($cookieBuilder);
         $this->csv = $csv;
@@ -112,7 +115,7 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
         $this->setPageTitle($this->templateParameters['subject_title']);
         //render
         $html = $this->templateRenderer->render($this->area . '/' . $this->language . '/' . $this->subject . '_' . $this->action, $this->templateParameters);
-        $this->response->setContent($html);
+        $this->httpStream->write($html);
     }
     
     /**
@@ -189,11 +192,11 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
         //set headers
         $fileName = $fileName ? $fileName : $this->translations[$this->subject]['plural'];
         foreach($this->csv->buildHttpHeaders($fileName) as $header => $value) {
-            $this->response->setHeader($header, $value);
+            $this->httpResponse->setHeader($header, $value);
         }
         //build csv
         if($columns) $this->csv->setColumnHeaders(array_values($columns));
-        $this->response->setContent($this->csv->fromObjects('test', $records));
+        $this->httpResponse->setContent($this->csv->fromObjects('test', $records));
     }
     
     /**
@@ -218,7 +221,7 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
         $this->setPageTitle($this->templateParameters['subject_title']);
         //render
         $html = $this->templateRenderer->render($this->area . '/' . $this->language . '/' . $this->subject . '_' . $this->action, $this->templateParameters);
-        $this->response->setContent($html);
+        $this->httpResponse->setContent($html);
     }
     
     /**
@@ -264,7 +267,7 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
             }
         }
         //redirect to default action
-        $this->response->setHeader('Location', $this->subjectBaseUrl);
+        $this->httpResponse->setHeader('Location', $this->subjectBaseUrl);
     }
     
     /**
@@ -283,7 +286,7 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
         $this->setPageTitle($this->templateParameters['subject_title']);
         //render
         $html = $this->templateRenderer->render($this->area . '/' . $this->language . '/' . $this->subject . '_' . $this->action, $this->templateParameters);
-        $this->response->setContent($html);
+        $this->httpResponse->setContent($html);
     }
     
     /**
@@ -305,6 +308,6 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
             }
         }
         //redirect to default action
-        $this->response->setHeader('Location', $this->subjectBaseUrl);
+        $this->httpResponse->setHeader('Location', $this->subjectBaseUrl);
     }
 }

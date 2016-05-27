@@ -6,15 +6,17 @@
 
 namespace PHPCraft\Subject;
 
-use Http\Request;
-use Http\Response;
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\StreamInterface;
 use PHPCraft\Template\RendererInterface;
 use PHPCraft\Cookie\CookieBuilderInterface;
 
 class Subject
 {
-    protected $request;
-    protected $response;
+    protected $httpRequest;
+    protected $httpResponse;
+    protected $httpStream;
     protected $templateRenderer;
     protected $cookieBuilder;
     protected $application;
@@ -29,8 +31,9 @@ class Subject
 
     /**
      * Constructor.
-     * @param Http\Request $request HTTP request handler instance
-     * @param Http\Response $response HTTP response handler instance
+     * @param Psr\Http\Message\RequestInterface $httpRequest HTTP request handler instance
+     * @param Psr\Http\Message\ResponseInterface $httpResponse HTTP response handler instance
+     * @param Psr\Http\Message\StreamInterface $httpStream HTTP stream handler instance
      * @param PHPCraft\Template\RendererInterface $templateRenderer template renderer instance
      * @param PHPCraft\Cookie\CookieBuilderInterface $cookieBuilder, instance
      * @param string $application current PHPCraft application
@@ -42,8 +45,9 @@ class Subject
      * @param array $routeParameters informations extracted from current request by route matching pattern
      **/
     public function __construct(
-        Request $request,
-        Response $response,
+        RequestInterface $httpRequest,
+        ResponseInterface $httpResponse,
+        StreamInterface $httpStream,
         RendererInterface $templateRenderer,
         CookieBuilderInterface $cookieBuilder,
         $application,
@@ -54,8 +58,9 @@ class Subject
         $language,
         $routeParameters = array()
     ) {
-        $this->request = $request;
-        $this->response = $response;
+        $this->httpRequest = $httpRequest;
+        $this->httpResponse = $httpResponse;
+        $this->httpStream = $httpStream;
         $this->templateRenderer = $templateRenderer;
         $this->cookieBuilder = $cookieBuilder;
         $this->application = $application;
@@ -67,11 +72,11 @@ class Subject
         $this->routeParameters = $routeParameters;
         $this->templateParameters = array(
             'application' => $this->application,
-            'basePath' => $basePath,
-            'requestedUri' => $request->getUri(),
             'area' => $this->area,
             'subject' => $this->subject,
             'action' => $this->action,
+            'basePath' => $basePath,
+            'requestedUri' => $httpRequest->getUri(),
             'language' => $this->language
         );
         $this->translations = array();
@@ -82,7 +87,7 @@ class Subject
      * stores the path to current subject
      **/
     public function getPathToSubject(){
-        $uriFragments = explode('/',$this->request->getUri());
+        $uriFragments = explode('/',$this->httpRequest->getUri());
         $pathToSubject = [];
         foreach((array) $uriFragments as $fragment) {
             if($fragment == $this->subject) {
@@ -152,7 +157,7 @@ class Subject
     {
         $backPaths = $this->cookieBuilder->get('backPaths');
         foreach((array) $backPaths as $backId => $backpath) {
-            if($backpath['path'] == $this->request->getUri()) {
+            if($backpath['path'] == $this->httpRequest->getUri()) {
                 $this->cookieBuilder->delete('backPaths[' . $backId . '][path]');
                 $this->cookieBuilder->delete('backPaths[' . $backId . '][label]');
                 unset($backPaths[$backId]);

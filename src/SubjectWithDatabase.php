@@ -6,8 +6,9 @@
 
 namespace PHPCraft\Subject;
 
-use Http\Request;
-use Http\Response;
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\StreamInterface;
 use PHPCraft\Template\RendererInterface;
 use PHPCraft\Cookie\CookieBuilderInterface;
 use PHPCraft\Database\QueryBuilderInterface;
@@ -21,8 +22,9 @@ class SubjectWithDatabase extends Subject
 
     /**
      * Constructor.
-     * @param Http\Request $request HTTP request handler instance
-     * @param Http\Response $response HTTP response handler instance
+     * @param Psr\Http\Message\RequestInterface $httpRequest HTTP request handler instance
+     * @param Psr\Http\Message\ResponseInterface $httpResponse HTTP response handler instance
+     * @param Psr\Http\Message\StreamInterface $httpStream HTTP stream handler instance
      * @param PHPCraft\Template\RendererInterface $templateRenderer template renderer instance
      * @param PHPCraft\Cookie\CookieBuilderInterface $cookieBuilder, instance
      * @param PHPCraft\Database\QueryBuilderInterface $queryBuilder query builder instance
@@ -35,8 +37,9 @@ class SubjectWithDatabase extends Subject
      * @param array $routeParameters informations extracted from current request by route matching pattern
      **/
     public function __construct(
-        Request $request,
-        Response $response,
+        RequestInterface $httpRequest,
+        ResponseInterface $httpResponse,
+        StreamInterface $httpStream,
         RendererInterface $templateRenderer,
         CookieBuilderInterface $cookieBuilder,
         QueryBuilderInterface $queryBuilder,
@@ -48,7 +51,7 @@ class SubjectWithDatabase extends Subject
         $language,
         $routeParameters = array()
     ) {
-        parent::__construct($request, $response, $templateRenderer, $cookieBuilder, $application, $basePath, $area, $subject, $action, $language, $routeParameters);
+        parent::__construct($httpRequest, $httpResponse, $httpStream, $templateRenderer, $cookieBuilder, $application, $basePath, $area, $subject, $action, $language, $routeParameters);
         $this->queryBuilder = $queryBuilder;
         
     }
