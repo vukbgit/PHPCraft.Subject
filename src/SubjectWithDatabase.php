@@ -10,7 +10,7 @@ use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamInterface;
 use PHPCraft\Template\RendererInterface;
-use PHPCraft\Cookie\CookieBuilderInterface;
+use PHPCraft\Cookie\CookieInterface;
 use PHPCraft\Database\QueryBuilderInterface;
 
 class SubjectWithDatabase extends Subject
@@ -26,7 +26,7 @@ class SubjectWithDatabase extends Subject
      * @param Psr\Http\Message\ResponseInterface $httpResponse HTTP response handler instance
      * @param Psr\Http\Message\StreamInterface $httpStream HTTP stream handler instance
      * @param PHPCraft\Template\RendererInterface $templateRenderer template renderer instance
-     * @param PHPCraft\Cookie\CookieBuilderInterface $cookieBuilder, instance
+     * @param PHPCraft\Cookie\CookieInterface $cookieBuilder, instance
      * @param PHPCraft\Database\QueryBuilderInterface $queryBuilder query builder instance
      * @param string $application current PHPCraft application
      * @param string $basePath path from domain root to application root (with trailing and ending slash)
@@ -41,7 +41,7 @@ class SubjectWithDatabase extends Subject
         ResponseInterface $httpResponse,
         StreamInterface $httpStream,
         RendererInterface $templateRenderer,
-        CookieBuilderInterface $cookieBuilder,
+        CookieInterface $cookieBuilder,
         QueryBuilderInterface $queryBuilder,
         $application,
         $basePath,

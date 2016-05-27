@@ -10,7 +10,7 @@ use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamInterface;
 use PHPCraft\Template\RendererInterface;
-use PHPCraft\Cookie\CookieBuilderInterface;
+use PHPCraft\Cookie\CookieInterface;
 
 class Subject
 {
@@ -35,7 +35,7 @@ class Subject
      * @param Psr\Http\Message\ResponseInterface $httpResponse HTTP response handler instance
      * @param Psr\Http\Message\StreamInterface $httpStream HTTP stream handler instance
      * @param PHPCraft\Template\RendererInterface $templateRenderer template renderer instance
-     * @param PHPCraft\Cookie\CookieBuilderInterface $cookieBuilder, instance
+     * @param PHPCraft\Cookie\CookieInterface $cookieBuilder, instance
      * @param string $application current PHPCraft application
      * @param string $basePath path from domain root to application root (with trailing and ending slash)
      * @param string $area current PHPCraft area
@@ -49,7 +49,7 @@ class Subject
         ResponseInterface $httpResponse,
         StreamInterface $httpStream,
         RendererInterface $templateRenderer,
-        CookieBuilderInterface $cookieBuilder,
+        CookieInterface $cookieBuilder,
         $application,
         $basePath,
         $area,

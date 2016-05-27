@@ -10,7 +10,7 @@ use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamInterface;
 use PHPCraft\Template\RendererInterface;
-use PHPCraft\Cookie\CookieBuilderInterface;
+use PHPCraft\Cookie\CookieInterface;
 use PHPCraft\Database\QueryBuilderInterface;
 use PHPCraft\Message\Message;
 use PHPCraft\Csv\CsvInterface;
@@ -37,7 +37,7 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
      * @param Psr\Http\Message\StreamInterface $httpStream HTTP stream handler instance
      * @param PHPCraft\Template\RendererInterface $templateRenderer template renderer instance
      * @param PHPCraft\Database\QueryBuilderInterface $queryBuilder query builder instance
-     * @param PHPCraft\Cookie\CookieBuilderInterface $cookieBuilder, instance
+     * @param PHPCraft\Cookie\CookieInterface $cookieBuilder, instance
      * @param PHPCraft\Message\Message $message instance
      * @param PHPCraft\Csv\CsvInterface $csv reader/writer instance
      * @param string $application current PHPCraft application
@@ -57,7 +57,7 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
         ResponseInterface $httpResponse,
         StreamInterface $httpStream,
         RendererInterface $templateRenderer,
-        CookieBuilderInterface $cookieBuilder,
+        CookieInterface $cookieBuilder,
         QueryBuilderInterface $queryBuilder,
         Message $message,
         CsvInterface $csv,
