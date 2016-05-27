@@ -184,4 +184,17 @@ class Subject
     {
         $this->templateParameters[$key] = $value;
     }
+    
+    /**
+     * Renders action template
+     * @param string $path;
+     **/
+    protected function renderTemplate($path = false)
+    {
+        if(!$path) {
+            $path = sprintf('%s/%s/%s/%s', $this->language, $this->area, $this->subject, $this->action);
+        }
+        $html = $this->templateRenderer->render($path, $this->templateParameters);
+        $this->httpResponse->write($html);
+    }
 }
