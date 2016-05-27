@@ -205,6 +205,6 @@ class Subject
             $path = sprintf('%s/%s/%s/%s', $this->language, $this->area, $this->subject, $this->action);
         }
         $html = $this->templateRenderer->render($path, $this->templateParameters);
-        $this->httpResponse->write($html);
+        $this->httpStream->write($html);
     }
 }
