@@ -114,7 +114,7 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
         $this->templateParameters['messages'] = $this->message->get('cookies');
         $this->setPageTitle($this->templateParameters['subject_title']);
         //render
-        $html = $this->templateRenderer->render($this->area . '/' . $this->language . '/' . $this->subject . '_' . $this->action, $this->templateParameters);
+        $html = $this->templateRenderer->render(sprintf('%s/%s/%s/%s', $this->area, $this->language, $this->subject, $this->action), $this->templateParameters);
         $this->httpStream->write($html);
     }
     
@@ -220,7 +220,7 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
         $this->templateParameters['messages'] = $this->message->get('cookies');
         $this->setPageTitle($this->templateParameters['subject_title']);
         //render
-        $html = $this->templateRenderer->render($this->area . '/' . $this->language . '/' . $this->subject . '_' . $this->action, $this->templateParameters);
+        $html = $this->templateRenderer->render(sprintf('%s/%s/%s/%s', $this->area, $this->language, $this->subject, $this->action), $this->templateParameters);
         $this->httpResponse->setContent($html);
     }
     
@@ -285,7 +285,7 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
         $this->templateParameters['messages'] = $this->message->get('cookies');
         $this->setPageTitle($this->templateParameters['subject_title']);
         //render
-        $html = $this->templateRenderer->render($this->area . '/' . $this->language . '/' . $this->subject . '_' . $this->action, $this->templateParameters);
+        $html = $this->templateRenderer->render(sprintf('%s/%s/%s/%s', $this->area, $this->language, $this->subject, $this->action), $this->templateParameters);
         $this->httpResponse->setContent($html);
     }
     
