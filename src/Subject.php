@@ -100,20 +100,30 @@ class Subject
     
     /**
      * adds a translations ini file content to subject translations
-     * @param string $key key of file content into translations array
-     * @param string $pathToIniFile file path into private/local/locale/
-     * @param string $folder subfolder of private to look translations into
+     * @param string $key key of translations array to store file content into
+     * @param string $pathToIniFile file path from application root
      * @throws InvalidArgumentException if file is not found
      **/
-    public function addTranslations($key, $pathToIniFile, $folder = false)
+    public function addTranslations($key, $pathToIniFile)
     {
-        if(!$folder) $folder = $this->application;
-        $path = PATH_TO_ROOT . 'private/' . $folder . '/locale/' . $pathToIniFile;
+        $path = PATH_TO_ROOT . $pathToIniFile;
         if(!is_file($path)) {
             throw new \InvalidArgumentException("Path to " . $path . " is not valid");
         } else {
             $this->translations[$key] = parse_ini_file($path,true);
         }
+    }
+    
+    /**
+     * adds an application level translations with the assumption that is sotred into private/application-name/current-language
+     * @param string $key key of translations array to store file content into
+     * @param string $pathToIniFile file path into private/application-name/curent-language/
+     * @throws InvalidArgumentException if file is not found
+     **/
+    public function addApplicationTranslations($key, $pathToIniFile)
+    {
+        $path = sprintf('private/%s/locale/%s/%s', $this->application, $this->language, $path);
+        $this->addTranslations($path);
     }
     
     /**
