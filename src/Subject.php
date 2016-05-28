@@ -106,7 +106,7 @@ class Subject
      **/
     public function addTranslations($key, $pathToIniFile)
     {
-        $path = PATH_TO_ROOT . $pathToIniFile;
+        $path = $pathToIniFile;
         if(!is_file($path)) {
             throw new \InvalidArgumentException("Path to " . $path . " is not valid");
         } else {
