@@ -93,6 +93,7 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
         $this->templateParameters['subject_title'] = $this->translations[$this->subject]['subject_title'];
         $this->templateParameters['primaryKey'] = $this->primaryKey;
         $this->templateParameters['translations'] = $this->translations;
+        $this->templateParameters['messages'] = $this->message->get('cookies');
         parent::execAction();
     }
     
@@ -111,7 +112,6 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
         //get records
         $this->templateParameters['records'] = $this->getList();
         //template parameters
-        $this->templateParameters['messages'] = $this->message->get('cookies');
         $this->setPageTitle($this->templateParameters['subject_title']);
         //render
         $this->renderTemplate();
@@ -216,7 +216,6 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
             if($updateGlobalAction) $this->setGlobalAction($updateGlobalAction);
         }
         //template parameters
-        $this->templateParameters['messages'] = $this->message->get('cookies');
         $this->setPageTitle($this->templateParameters['subject_title']);
         //render
         $this->renderTemplate();
@@ -280,7 +279,6 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
             $this->templateParameters['record'] = $this->queryBuilder->get()[0];
         }
         //template parameters
-        $this->templateParameters['messages'] = $this->message->get('cookies');
         $this->setPageTitle($this->templateParameters['subject_title']);
         //render
         $this->renderTemplate();
