@@ -210,9 +210,8 @@ class Subject
     
     /**
      * Gets http components (request, response and stream) and returns them into an object
-     * @param string $path;
      **/
-    protected function getHttp()
+    public function getHttp()
     {
         return (object) [
             'request' => $this->httpRequest,
