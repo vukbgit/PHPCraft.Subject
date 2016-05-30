@@ -18,7 +18,7 @@ class Subject
     protected $httpResponse;
     protected $httpStream;
     protected $templateRenderer;
-    protected $cookieBuilder;
+    protected $cookie;
     protected $application;
     protected $basePath;
     protected $area;
@@ -35,7 +35,7 @@ class Subject
      * @param Psr\Http\Message\ResponseInterface $httpResponse HTTP response handler instance
      * @param Psr\Http\Message\StreamInterface $httpStream HTTP stream handler instance
      * @param PHPCraft\Template\RendererInterface $templateRenderer template renderer instance
-     * @param PHPCraft\Cookie\CookieInterface $cookieBuilder, instance
+     * @param PHPCraft\Cookie\CookieInterface $cookie, instance
      * @param string $application current PHPCraft application
      * @param string $basePath path from domain root to application root (with trailing and ending slash)
      * @param string $area current PHPCraft area
@@ -49,7 +49,7 @@ class Subject
         ResponseInterface $httpResponse,
         StreamInterface $httpStream,
         RendererInterface $templateRenderer,
-        CookieInterface $cookieBuilder,
+        CookieInterface $cookie,
         $application,
         $basePath,
         $area,
@@ -58,11 +58,11 @@ class Subject
         $language,
         $routeParameters = array()
     ) {
-        $this->httpRequest = $httpRequest;
-        $this->httpResponse = $httpResponse;
-        $this->httpStream = $httpStream;
+        $this->httpRequest =& $httpRequest;
+        $this->httpResponse =& $httpResponse;
+        $this->httpStream =& $httpStream;
         $this->templateRenderer = $templateRenderer;
-        $this->cookieBuilder = $cookieBuilder;
+        $this->cookie = $cookie;
         $this->application = $application;
         $this->basePath = $basePath;
         $this->area = $area;
@@ -156,8 +156,8 @@ class Subject
             'backLabel' => FILTER_SANITIZE_STRING,
         );
         $input = filter_input_array(INPUT_POST, $arguments);
-        $this->cookieBuilder->set('backPaths[' . $input['backId'] . '][path]', $input['backPath']);
-        $this->cookieBuilder->set('backPaths[' . $input['backId'] . '][label]', $input['backLabel']);
+        $this->cookie->set('backPaths[' . $input['backId'] . '][path]', $input['backPath']);
+        $this->cookie->set('backPaths[' . $input['backId'] . '][label]', $input['backLabel']);
     }
     
     /**
@@ -165,11 +165,11 @@ class Subject
      **/
     protected function getBackPaths()
     {
-        $backPaths = $this->cookieBuilder->get('backPaths');
+        $backPaths = $this->cookie->get('backPaths');
         foreach((array) $backPaths as $backId => $backpath) {
             if($backpath['path'] == $this->httpRequest->getUri()) {
-                $this->cookieBuilder->delete('backPaths[' . $backId . '][path]');
-                $this->cookieBuilder->delete('backPaths[' . $backId . '][label]');
+                $this->cookie->delete('backPaths[' . $backId . '][path]');
+                $this->cookie->delete('backPaths[' . $backId . '][label]');
                 unset($backPaths[$backId]);
             }
         }
