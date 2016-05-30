@@ -122,7 +122,7 @@ class Subject
      **/
     public function addApplicationTranslations($key, $pathToIniFile)
     {
-        $path = sprintf('private/%s/locale/%s/%s', $this->application, $this->language, $pathToIniFile);
+        $path = sprintf('private/%s/locales/%s/%s', $this->application, $this->language, $pathToIniFile);
         $this->addTranslations($key, $path);
     }
     
