@@ -94,6 +94,7 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
         $this->templateParameters['primaryKey'] = $this->primaryKey;
         $this->templateParameters['translations'] = $this->translations;
         $this->templateParameters['messages'] = $this->message->get('cookies');
+        $this->httpResponse = $this->message->clear('cookies');
         parent::execAction();
     }
     
