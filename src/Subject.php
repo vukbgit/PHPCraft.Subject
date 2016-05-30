@@ -207,4 +207,17 @@ class Subject
         $html = $this->templateRenderer->render($path, $this->templateParameters);
         $this->httpStream->write($html);
     }
+    
+    /**
+     * Gets http components (request, response and stream) and returns them into an object
+     * @param string $path;
+     **/
+    protected function getHttp()
+    {
+        return (object) [
+            'request' => $this->httpRequest,
+            'response' => $this->httpResponse,
+            'stream' => $this->httpStream
+        ];
+    }
 }
