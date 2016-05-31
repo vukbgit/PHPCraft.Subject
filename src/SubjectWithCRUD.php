@@ -37,7 +37,7 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
      * @param Psr\Http\Message\StreamInterface $httpStream HTTP stream handler instance
      * @param PHPCraft\Template\RendererInterface $templateRenderer template renderer instance
      * @param PHPCraft\Database\QueryBuilderInterface $queryBuilder query builder instance
-     * @param PHPCraft\Cookie\CookieInterface $cookieBuilder, instance
+     * @param PHPCraft\Cookie\CookieInterface $cookie, instance
      * @param PHPCraft\Message\Message $message instance
      * @param PHPCraft\Csv\CsvInterface $csv reader/writer instance
      * @param string $application current PHPCraft application
@@ -57,7 +57,7 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
         ResponseInterface $httpResponse,
         StreamInterface $httpStream,
         RendererInterface $templateRenderer,
-        CookieInterface $cookieBuilder,
+        CookieInterface $cookie,
         QueryBuilderInterface $queryBuilder,
         Message $message,
         CsvInterface $csv,
@@ -73,9 +73,9 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
         $exportFields = false,
         $routeParameters = array()
     ) {
-        parent::__construct($httpRequest, $httpResponse, $httpStream, $templateRenderer, $cookieBuilder, $queryBuilder, $application, $basePath, $area, $subject, $action, $language, $routeParameters);
+        parent::__construct($httpRequest, $httpResponse, $httpStream, $templateRenderer, $cookie, $queryBuilder, $application, $basePath, $area, $subject, $action, $language, $routeParameters);
         $this->message = $message;
-        $this->message->setCookie($cookieBuilder);
+        $this->message->setCookie($cookie);
         $this->csv = $csv;
         $this->dbTable = $dbTable;
         $this->dbView = $dbView;
@@ -119,16 +119,16 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
     * Adds ordering informations to query based on stored cookies
     */
     protected function setListOrder() {
-        $this->templateParameters['orderBy'] = $this->cookieBuilder->get('order-by');
+        $this->templateParameters['orderBy'] = $this->cookie->get('order-by');
         $orderByField = filter_input(INPUT_POST, 'order-by', FILTER_SANITIZE_STRING);
         if(isset($orderByField)){
             $direction = (isset($this->templateParameters['orderBy'][$this->subject][$orderByField]) && $this->templateParameters['orderBy'][$this->subject][$orderByField] == 'ASC') ? 'DESC' : 'ASC';
-            $this->cookieBuilder->set('order-by['.$this->subject.']['.$orderByField.']', $direction, self::PERMANENT_COOKIES_LIFE);
+            $this->cookie->set('order-by['.$this->subject.']['.$orderByField.']', $direction, self::PERMANENT_COOKIES_LIFE);
             $this->templateParameters['orderBy'][$this->subject][$orderByField] = $direction;
         }
         $removeOrderByField = filter_input(INPUT_POST, 'remove-order-by', FILTER_SANITIZE_STRING);
         if(isset($removeOrderByField)){
-            $this->cookieBuilder->delete('order-by['.$this->subject.']['.$removeOrderByField.']');
+            $this->cookie->delete('order-by['.$this->subject.']['.$removeOrderByField.']');
             unset($this->templateParameters['orderBy'][$this->subject][$removeOrderByField]);
         }
         if (isset($this->templateParameters['orderBy'][$this->subject])) {
@@ -145,15 +145,15 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
     * @param Pixie\QueryBuilder\QueryBuilderHandler $query
     */
     protected function setListFilter(array $variablesDefinitions) {
-        $this->templateParameters['filterBy'] = $this->cookieBuilder->get('filter-by');
+        $this->templateParameters['filterBy'] = $this->cookie->get('filter-by');
         if(isset($_POST['filter-by'])){
             $input = filter_input_array(INPUT_POST, $variablesDefinitions);
             foreach ($input as $filterByField => $value) {
                 if($value !== '' && $value !== false) {
-                    $this->cookieBuilder->set('filter-by[' .$this->subject .'][' .$filterByField .']', $value,self::PERMANENT_COOKIES_LIFE);
+                    $this->cookie->set('filter-by[' .$this->subject .'][' .$filterByField .']', $value,self::PERMANENT_COOKIES_LIFE);
                     $this->templateParameters['filterBy'][$this->subject][$filterByField] = $value;
                 } else {
-                    $this->cookieBuilder->delete('filter-by[' . $this->subject . '][' . $filterByField .']');
+                    $this->cookie->delete('filter-by[' . $this->subject . '][' . $filterByField .']');
                     unset($this->templateParameters['filterBy'][$this->subject][$filterByField]);
                 }
             }
