@@ -75,7 +75,7 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
     ) {
         parent::__construct($httpRequest, $httpResponse, $httpStream, $templateRenderer, $cookieBuilder, $queryBuilder, $application, $basePath, $area, $subject, $action, $language, $routeParameters);
         $this->message = $message;
-        $this->message->setCookieBuilder($cookieBuilder);
+        $this->message->setCookie($cookieBuilder);
         $this->csv = $csv;
         $this->dbTable = $dbTable;
         $this->dbView = $dbView;
