@@ -17,7 +17,7 @@ use PHPCraft\Csv\CsvInterface;
 
 abstract class SubjectWithCRUD extends SubjectWithDatabase
 {
-    use TitledSubjectTrait, SubjectWithNavigationTrait, SubjectWithGlobalActionsTrait;
+    use SubjectWithNavigationTrait, SubjectWithGlobalActionsTrait;
 
     /**
      * life of very persisten cookies in seconds (157680000 = 5 years)
@@ -112,8 +112,6 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
     {
         //get records
         $this->templateParameters['records'] = $this->getList();
-        //template parameters
-        $this->setPageTitle($this->templateParameters['subject_title']);
         //render
         $this->renderTemplate();
     }
