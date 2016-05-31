@@ -45,9 +45,9 @@ class Subject
      * @param array $routeParameters informations extracted from current request by route matching pattern
      **/
     public function __construct(
-        RequestInterface $httpRequest,
-        ResponseInterface $httpResponse,
-        StreamInterface $httpStream,
+        RequestInterface &$httpRequest,
+        ResponseInterface &$httpResponse,
+        StreamInterface &$httpStream,
         RendererInterface $templateRenderer,
         CookieInterface $cookie,
         $application,
@@ -206,17 +206,5 @@ class Subject
         }
         $html = $this->templateRenderer->render($path, $this->templateParameters);
         $this->httpStream->write($html);
-    }
-    
-    /**
-     * Gets http components (request, response and stream) and returns them into an object
-     **/
-    public function getHttp()
-    {
-        return (object) [
-            'request' => $this->httpRequest,
-            'response' => $this->httpResponse,
-            'stream' => $this->httpStream
-        ];
     }
 }
