@@ -199,7 +199,7 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
      */
     protected function execInsertForm()
     {
-        $this->renderTemplate();
+        $this->renderTemplate(sprintf('%s/%s/saveForm', $this->area, $this->subject));
     }
     
     /**
@@ -214,7 +214,7 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
         $this->templateParameters['record'] = $this->queryBuilder->get()[0];
         if($updateGlobalAction) $this->setGlobalAction($updateGlobalAction);
         //render
-        $this->renderTemplate();
+        $this->renderTemplate(sprintf('%s/%s/saveForm', $this->area, $this->subject));
     }
     
     /**
