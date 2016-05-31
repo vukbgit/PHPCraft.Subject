@@ -3,7 +3,7 @@ namespace PHPCraft\Subject;
 
 trait SubjectWithNavigationTrait {
     
-    protected $subjectBaseUrl;
+    protected $subjectBasePath;
     /**
      * stores navigation structures as array
      * @param array $navigations
@@ -13,11 +13,11 @@ trait SubjectWithNavigationTrait {
     }
     
     /**
-     * sets current subject base url
+     * sets current subject base path, the part of URL path from application-root that all of subject rules share
      * @param array $href
      */
-    public function setSubjectBaseUrl($url) {
-        $this->subjectBaseUrl = $url;
-        $this->templateParameters['subjectBaseUrl'] = $url;
+    public function setSubjectBasePath($path) {
+        $this->subjectBasePath = $path;
+        $this->templateParameters['subjectBasePath'] = $path;
     }
 }
