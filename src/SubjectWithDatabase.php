@@ -29,7 +29,7 @@ class SubjectWithDatabase extends Subject
      * @param PHPCraft\Cookie\CookieInterface $cookieBuilder, instance
      * @param PHPCraft\Database\QueryBuilderInterface $queryBuilder query builder instance
      * @param string $application current PHPCraft application
-     * @param string $basePath path from domain root to application root (with trailing and ending slash)
+     * @param string $basePath path from domain root to subject level (with trailing and ending slash)
      * @param string $area current PHPCraft area
      * @param string $subject current PHPCraft subject
      * @param string $action current PHPCraft action
