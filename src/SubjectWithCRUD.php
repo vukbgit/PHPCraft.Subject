@@ -197,22 +197,24 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
     }
     
     /**
-     * Displays save form
+     * Displays insert form
      */
-    protected function execSaveForm($updateGlobalAction = array())
+    protected function execInsertForm()
+    {
+        $this->renderTemplate();
+    }
+    
+    /**
+     * Displays update form
+     */
+    protected function execUpdateForm($updateGlobalAction = array())
     {
         $recordId = isset($this->routeParameters['key']) ? $this->routeParameters['key'] : false;
-        if(!$recordId) {
-        //insert
-            $this->templateParameters['subAction'] = 'insert';
-        } else {
-        //update
-            $this->templateParameters['subAction'] = 'update';
-            $this->queryBuilder->table($this->dbView);
-            $this->queryBuilder->where($this->primaryKey,$recordId);
-            $this->templateParameters['record'] = $this->queryBuilder->get()[0];
-            if($updateGlobalAction) $this->setGlobalAction($updateGlobalAction);
-        }
+        $this->templateParameters['subAction'] = 'update';
+        $this->queryBuilder->table($this->dbView);
+        $this->queryBuilder->where($this->primaryKey,$recordId);
+        $this->templateParameters['record'] = $this->queryBuilder->get()[0];
+        if($updateGlobalAction) $this->setGlobalAction($updateGlobalAction);
         //render
         $this->renderTemplate();
     }
