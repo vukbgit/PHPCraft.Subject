@@ -20,7 +20,6 @@ class Subject
     protected $templateRenderer;
     protected $cookie;
     protected $application;
-    protected $basePath;
     protected $area;
     protected $subject;
     protected $action;
@@ -28,6 +27,7 @@ class Subject
     protected $templateParameters;
     protected $translations;
     protected $areaAuthentication = false;
+    protected $pathToSubject;
 
     /**
      * Constructor.
@@ -37,7 +37,6 @@ class Subject
      * @param PHPCraft\Template\RendererInterface $templateRenderer template renderer instance
      * @param PHPCraft\Cookie\CookieInterface $cookie, instance
      * @param string $application current PHPCraft application
-     * @param string $basePath path from domain root to subject level (with trailing and ending slash)
      * @param string $area current PHPCraft area
      * @param string $subject current PHPCraft subject
      * @param string $action current PHPCraft action
@@ -51,7 +50,6 @@ class Subject
         RendererInterface $templateRenderer,
         CookieInterface $cookie,
         $application,
-        $basePath,
         $area,
         $subject,
         $action,
@@ -64,7 +62,6 @@ class Subject
         $this->templateRenderer = $templateRenderer;
         $this->cookie = $cookie;
         $this->application = $application;
-        $this->basePath = $basePath;
         $this->area = $area;
         $this->subject = $subject;
         $this->action = $action;
@@ -75,27 +72,20 @@ class Subject
             'area' => $this->area,
             'subject' => $this->subject,
             'action' => $this->action,
-            'basePath' => $basePath,
             'requestedUri' => $httpRequest->getUri(),
             'language' => $this->language
         );
         $this->translations = array();
-        $this->getPathToSubject();
     }
     
     /**
      * stores the path to current subject
      **/
-    public function getPathToSubject(){
-        $uriFragments = explode('/',$this->httpRequest->getUri());
-        $pathToSubject = [];
-        foreach((array) $uriFragments as $fragment) {
-            if($fragment == $this->subject) {
-                break;
-            }
-            $pathToSubject[] = $fragment;
-        }
-        $this->templateParameters['pathToSubject'] = implode('/',$pathToSubject);
+    public function setPathToSubject($applicationBasePath, $areaBasePath, $subjectBasePath){
+        $this->pathToSubject['application'] = $applicationBasePath;
+        $this->pathToSubject['area'] = $areaBasePath;
+        $this->pathToSubject['subject'] = $subjectBasePath;
+        $this->templateParameters['pathToSubject'] = $this->pathToSubject;
     }
     
     /**

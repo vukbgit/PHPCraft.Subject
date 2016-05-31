@@ -41,7 +41,6 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
      * @param PHPCraft\Message\Message $message instance
      * @param PHPCraft\Csv\CsvInterface $csv reader/writer instance
      * @param string $application current PHPCraft application
-     * @param string $basePath path from domain root to subject level (with trailing and ending slash)
      * @param string $area current PHPCraft area
      * @param string $subject current PHPCraft subject
      * @param string $action current PHPCraft action
@@ -62,7 +61,6 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
         Message $message,
         CsvInterface $csv,
         $application,
-        $basePath,
         $area,
         $subject,
         $action,
@@ -73,7 +71,7 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
         $exportFields = false,
         $routeParameters = array()
     ) {
-        parent::__construct($httpRequest, $httpResponse, $httpStream, $templateRenderer, $cookie, $queryBuilder, $application, $basePath, $area, $subject, $action, $language, $routeParameters);
+        parent::__construct($httpRequest, $httpResponse, $httpStream, $templateRenderer, $cookie, $queryBuilder, $application, $area, $subject, $action, $language, $routeParameters);
         $this->message = $message;
         $this->message->setCookie($cookie);
         $this->csv = $csv;

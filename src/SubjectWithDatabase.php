@@ -29,7 +29,6 @@ class SubjectWithDatabase extends Subject
      * @param PHPCraft\Cookie\CookieInterface $cookieBuilder, instance
      * @param PHPCraft\Database\QueryBuilderInterface $queryBuilder query builder instance
      * @param string $application current PHPCraft application
-     * @param string $basePath path from domain root to subject level (with trailing and ending slash)
      * @param string $area current PHPCraft area
      * @param string $subject current PHPCraft subject
      * @param string $action current PHPCraft action
@@ -44,14 +43,13 @@ class SubjectWithDatabase extends Subject
         CookieInterface $cookieBuilder,
         QueryBuilderInterface $queryBuilder,
         $application,
-        $basePath,
         $area,
         $subject,
         $action,
         $language,
         $routeParameters = array()
     ) {
-        parent::__construct($httpRequest, $httpResponse, $httpStream, $templateRenderer, $cookieBuilder, $application, $basePath, $area, $subject, $action, $language, $routeParameters);
+        parent::__construct($httpRequest, $httpResponse, $httpStream, $templateRenderer, $cookieBuilder, $application, $area, $subject, $action, $language, $routeParameters);
         $this->queryBuilder = $queryBuilder;
         
     }
