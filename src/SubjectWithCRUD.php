@@ -311,6 +311,6 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
     protected function renderTemplate($path = false)
     {
         $this->templateParameters['messages'] = $this->message->get('cookies');
-        parent::renderTemplate();
+        parent::renderTemplate($path);
     }
 }
