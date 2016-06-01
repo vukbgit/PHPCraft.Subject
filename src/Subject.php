@@ -194,6 +194,7 @@ class Subject
         if(!$path) {
             $path = sprintf('%s/%s/%s', $this->area, $this->subject, $this->action);
         }
+        $this->templateParameters['translations'] = $this->translations;
         $html = $this->templateRenderer->render($path, $this->templateParameters);
         $this->httpStream->write($html);
     }

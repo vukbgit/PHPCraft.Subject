@@ -89,8 +89,6 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
     public function execAction()
     {
         $this->templateParameters['primaryKey'] = $this->primaryKey;
-        $this->templateParameters['translations'] = $this->translations;
-        $this->templateParameters['messages'] = $this->message->get('cookies');
         $this->httpResponse = $this->message->clear('cookies');
         parent::execAction();
     }
@@ -199,6 +197,9 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
      */
     protected function execInsertForm()
     {
+        // form translations
+        $this->addTranslations('form', sprintf('private/global/locales/%s/form.ini', $this->language));
+        // render template
         $this->renderTemplate(sprintf('%s/%s/saveForm', $this->area, $this->subject));
     }
     
@@ -207,13 +208,16 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
      */
     protected function execUpdateForm($updateGlobalAction = array())
     {
+        // form translations
+        $this->addTranslations('form', sprintf('private/global/locales/%s/form.ini', $this->language));
+        // get record id
         $recordId = isset($this->routeParameters['key']) ? $this->routeParameters['key'] : false;
-        $this->templateParameters['subAction'] = 'update';
+        // build query
         $this->queryBuilder->table($this->dbView);
         $this->queryBuilder->where($this->primaryKey,$recordId);
         $this->templateParameters['record'] = $this->queryBuilder->get()[0];
         if($updateGlobalAction) $this->setGlobalAction($updateGlobalAction);
-        //render
+        // render template
         $this->renderTemplate(sprintf('%s/%s/saveForm', $this->area, $this->subject));
     }
     
@@ -298,5 +302,15 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
         }
         //redirect to default action
         $this->httpResponse->setHeader('Location', $this->subjectBaseUrl);
+    }
+    
+    /**
+     * Renders action template
+     * @param string $path;
+     **/
+    protected function renderTemplate($path = false)
+    {
+        $this->templateParameters['messages'] = $this->message->get('cookies');
+        parent::renderTemplate();
     }
 }
