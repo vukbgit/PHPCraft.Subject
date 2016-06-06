@@ -5,9 +5,10 @@ trait SubjectWithUploadTrait {
     
     protected $uploader;
     /*protected $fieldsDefinitions;
-    protected $field;
+    
     protected $uploadOk;*/
-    protected uploadfields;
+    protected $uploadFields;
+    protected $uploadedField;
     
     /**
      * Injects the uploader instance
@@ -21,32 +22,17 @@ trait SubjectWithUploadTrait {
     
     /**
      * Executes the upload action
-     * @param array $fieldsDefinitions, an array of arrays, indexed by field name, each representig a field definition with:
-     *          validationRules => array of rules to validate uploaded file against (see handleUpload())
-     *          destination => formatted string with containing path from application-root with ending slash and without filename
-     **/
-    protected function handleUploadFields($fieldsDefinitions)
-    {
-        $this->fieldsDefinitions = $fieldsDefinitions;
-        //check for which field the file has been sent
-        $this->field = filter_input(INPUT_POST, 'uploadTargetField', FILTER_SANITIZE_STRING);
-        if(!$this->field) {
-            throw new \Exception('POST uploadTargetField field must be set for upload to work');
-        }
-        $this->handleUpload();
-    }
-    
-    /**
-     * Executes the upload action
      **/
     protected function handleUpload()
     {
+        //check if any upload
+        $this->checkUpload();
         // set field
-        $this->uploader->setfield($this->field);
+        $this->uploader->setfield($this->uploadedField);
         // set container
-        $this->uploader->setDestination($this->fieldsDefinitions[$this->field]['destination']);
+        $this->uploader->setDestination($this->uploadedFieldsDefinitions[$this->uploadedField]['destination']);
         // set rules
-        foreach($this->fieldsDefinitions[$this->field]['validationRules'] as $rule) {
+        foreach($this->uploadedFieldsDefinitions[$this->uploadedField]['validationRules'] as $rule) {
             $options = isset($rule['options']) ? $rule['options'] : null;
             $message = isset($rule['message']) ? $rule['message'] : null;
             $this->uploader->addValidationRule($rule['type'], $options, $message);
@@ -58,6 +44,24 @@ trait SubjectWithUploadTrait {
             $this->uploader->close();
         }
     }
+    
+    /**
+     * Checks whether an upload has been tried
+     * @throws Exception if no field with 'uploadedField' name has been sent
+     * @return boolean, true on success
+     **/
+    protected function checkUpload()
+    {
+        //check for which field the file has been sent
+        $this->uploadedField = filter_input(INPUT_POST, 'uploadedField', FILTER_SANITIZE_STRING);
+        //error
+        if(!$this->uploadedField) {
+            throw new \Exception('POST uploadedField field must be set for upload to work');
+        }
+        return true;
+    }
+    
+
     
     /**
      * Outputs to browser upload outcome in json format for ajax calls benefit
@@ -72,7 +76,7 @@ trait SubjectWithUploadTrait {
         }
         // uploaded file
         $json->initialPreview = [
-            '<img class="file-preview-image" src="' . $this->fieldsDefinitions[$this->field]['destination'] . '/' . $this->uploader->getUploadedFileInfo()['name'] . '">'
+            '<img class="file-preview-image" src="' . $this->uploadedFieldsDefinitions[$this->uploadedField]['destination'] . '/' . $this->uploader->getUploadedFileInfo()['name'] . '">'
         ];
         return json_encode($json);
     }
@@ -80,14 +84,12 @@ trait SubjectWithUploadTrait {
     /**
      * Adds an uploadField definition
      * @param string $field
+     * @param string $destination path to destination directory
      * @param array $validationRules array of rules to validate uploaded file against (see handleUpload())
      **/
-    protected function addUploadField($name, $validationRules)
+    protected function addUploadField($name, $destination, $validationRules)
     {
-        $this->uploadFields[] = [
-            'name' => $name,
-            'validationRules' => $validationRules
-        ];
+        $this->uploadFields[] = new Upload\UploadField($name, $destination, $validationRules);
     }
     
     /**
@@ -97,8 +99,7 @@ trait SubjectWithUploadTrait {
     protected function addUploadFields($uploadFields)
     {
         foreach((array) $uploadFields as $field => $uploadField) {
-            $this->addUploadField($field, $uploadField['validationRules']);
+            $this->addUploadField($field, $uploadField['destination'], $uploadField['validationRules']);
         }
-        r($this->uploadFields);
     }
 }
