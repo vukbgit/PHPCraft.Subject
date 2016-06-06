@@ -4,9 +4,10 @@ namespace PHPCraft\Subject;
 trait SubjectWithUploadTrait {
     
     protected $uploader;
-    protected $fieldsDefinitions;
+    /*protected $fieldsDefinitions;
     protected $field;
-    protected $uploadOk;
+    protected $uploadOk;*/
+    protected uploadfields;
     
     /**
      * Injects the uploader instance
@@ -15,6 +16,7 @@ trait SubjectWithUploadTrait {
     public function injectUploader($uploader)
     {
         $this->uploader = $uploader;
+        $this->uploadFields = array();
     }
     
     /**
@@ -73,5 +75,30 @@ trait SubjectWithUploadTrait {
             '<img class="file-preview-image" src="' . $this->fieldsDefinitions[$this->field]['destination'] . '/' . $this->uploader->getUploadedFileInfo()['name'] . '">'
         ];
         return json_encode($json);
+    }
+    
+    /**
+     * Adds an uploadField definition
+     * @param string $field
+     * @param array $validationRules array of rules to validate uploaded file against (see handleUpload())
+     **/
+    protected function addUploadField($name, $validationRules)
+    {
+        $this->uploadFields[] = [
+            'name' => $name,
+            'validationRules' => $validationRules
+        ];
+    }
+    
+    /**
+     * Adds one or more uploadField definitions
+     * @return array indexed by field names
+     **/
+    protected function addUploadFields($uploadFields)
+    {
+        foreach((array) $uploadFields as $field => $uploadField) {
+            $this->addUploadField($field, $uploadField['validationRules']);
+        }
+        r($this->uploadFields);
     }
 }
