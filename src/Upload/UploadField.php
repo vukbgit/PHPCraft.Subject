@@ -10,7 +10,6 @@ namespace PHPCraft\Subject\Upload;
 class UploadField
 {
     protected $field;
-    protected $destination;
     /**
     * array[
     * type => as defined into Upload adapter
@@ -18,21 +17,17 @@ class UploadField
     * message => localized message for rule breaking warning
     **/
     protected $validationRules;
+    protected $outputs;
     
     /**
      * constructor
      *
      * @param string $field
-     * @param string $destination path to destination directory
      * @param array $validationRules array of rules to validate uploaded file against
      **/
-    public function __construct($field, $destination, $validationRules = null)
+    public function __construct($field, $validationRules = null)
     {
         $this->field = $field;
-        $this->destination = $destination;
-        if(substr($this->destination, -1) != '/') {
-            $this->destination .= '/';
-        }
         $this->validationRules = $validationRules;
     }
 }
