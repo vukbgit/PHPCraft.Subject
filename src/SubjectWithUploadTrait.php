@@ -85,20 +85,21 @@ trait SubjectWithUploadTrait {
      * Adds an uploadField definition
      * @param string $field
      * @param array $validationRules array of rules to validate uploaded file against (see handleUpload())
+     * @param array $outputs array of rules to validate uploaded file against (see handleUpload())
      **/
-    protected function addUploadField($name, $validationRules)
+    protected function addUploadField($name, $validationRules, $outputs)
     {
         $this->uploadFields[] = new Upload\UploadField($name, $validationRules);
     }
     
     /**
      * Adds one or more uploadField definitions
-     * @return array indexed by field names
+     * @param array $uploadFields indexed by field names
      **/
     protected function addUploadFields($uploadFields)
     {
         foreach((array) $uploadFields as $field => $uploadField) {
-            $this->addUploadField($field, $uploadField['validationRules']);
+            $this->addUploadField($field, $uploadField['validationRules'], $uploadField['outputs']);
         }
     }
 }

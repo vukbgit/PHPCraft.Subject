@@ -7,7 +7,7 @@ namespace PHPCraft\Subject\Upload;
  *
  * @author vuk <info@vuk.bg.it>
  */
-class UploadFileOutput
+class Output
 {
     protected $destination;
     
