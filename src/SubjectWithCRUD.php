@@ -52,9 +52,9 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
      * @param array $routeParameters informations extracted from current request by route matching pattern
      **/
     public function __construct(
-        RequestInterface $httpRequest,
-        ResponseInterface $httpResponse,
-        StreamInterface $httpStream,
+        RequestInterface &$httpRequest,
+        ResponseInterface &$httpResponse,
+        StreamInterface &$httpStream,
         RendererInterface $templateRenderer,
         CookieInterface $cookie,
         QueryBuilderInterface $queryBuilder,
@@ -89,7 +89,6 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
     public function execAction()
     {
         $this->templateParameters['primaryKey'] = $this->primaryKey;
-        $this->httpResponse = $this->message->clear('cookies');
         parent::execAction();
     }
     
@@ -268,6 +267,35 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
     }
     
     /**
+     * Inserts record
+     * @param array $arguments fields to be extracted from posted values as required from filter_input_array
+     * @param string $redirectAction
+     */
+    protected function execInsert($arguments = array(), $redirectAction = null)
+    {
+        $input = filter_input_array(INPUT_POST, $arguments);
+        if($input) {
+            $this->queryBuilder->table($this->dbTable);
+            try{
+                unset($input[$this->primaryKey]);
+                $recordId = $this->queryBuilder->insert($input);
+                $this->message->save('cookies','success',$this->translations[$this->subject]['insert_success']);
+            } catch(\PDOException $exception) {
+                $error = $this->queryBuilder->handleQueryException($exception);
+                switch($error[0]) {
+                    case 'integrity_constraint_violation_duplicate_entry':
+                        $message = $this->translations[$this->subject][$error[0].'_'.$error[1]];
+                    break;
+                }
+                $this->message->save('cookies','danger',$message);
+            }
+        }
+        //redirect
+        $redirectAction = $redirectAction ? $redirectAction : 'list';
+        $this->httpResponse = $this->httpResponse->withHeader('Location', implode('', $this->pathToSubject) . $redirectAction);
+    }
+    
+    /**
      * Displays delete form
      */
     protected function execDeleteForm()
@@ -301,7 +329,7 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
             }
         }
         //redirect to default action
-        $this->httpResponse->setHeader('Location', $this->subjectBaseUrl);
+        $this->httpResponse = $this->httpResponse->withHeader('Location', $this->subjectBaseUrl);
     }
     
     /**
