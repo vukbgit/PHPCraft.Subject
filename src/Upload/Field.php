@@ -12,6 +12,8 @@ class Field
     protected $field;
     protected $uploader;
     protected $outputsFiles;
+    protected $inputFile;
+    protected $inputHash;
     
     /**
     * array of PHPCraft\Subject\Upload\Output instances
@@ -38,7 +40,6 @@ class Field
     
     /**
      * constructor
-     *
      * @param string $field
      * @param array $validations rules to validate uploaded file against
      * @param string $previewTemplate html template to be shown into preview
@@ -54,8 +55,16 @@ class Field
     }
     
     /**
+     * Stores input informations
+     **/
+    private function setInput()
+    {
+        $this->inputFile = $_FILES[$this->field]['name'];
+        $this->inputHash = hash_file('md5', $_FILES[$this->field]['tmp_name']);
+    }
+    
+    /**
      * Adds an output definition
-     *
      * @param string $name
      * @param string $destination path to destination directory
      **/
@@ -72,10 +81,12 @@ class Field
     {
         // store uploader
         $this->uploader =& $uploader;
+        //store input
+        $this->setInput();
         // tell uploader which field is uploaded
         $this->uploader->setField($this->field);
         // loop field outputs
-        $preview = '';
+        //$preview = '';
         $i=0;
         foreach($this->outputs as $outputName => $output) {
             // set destination
@@ -97,17 +108,38 @@ class Field
             } else {
                 // success
                 $outputPath = $output->getDestination() .  $this->uploader->getUploadedFileInfo()['name'];
-                $this->outputsFiles[$outputName] = ['path' => $outputPath];
+                $this->outputsFiles[$outputName] = [
+                    'name' => $this->uploader->getUploadedFileInfo()['name'],
+                    'path' => $outputPath
+                ];
                 // inject output path into preview
-                $preview = $this->insertOutputIntoPreview($outputName, $outputPath);
+                //$preview = $this->insertOutputIntoPreview($outputName, $outputPath);
             }
             $i++;
         }
         // store preview
-        $this->previews[] = $preview;
+        //$this->previews[] = $preview;
         // close upload
         $this->uploader->close();
         return true;
+    }
+    
+    /**
+     * Return input file hash
+     * @return array
+     **/
+    public function getInputHash()
+    {
+        return $this->inputHash;
+    }
+    
+    /**
+     * Return input file name
+     * @return array
+     **/
+    public function getInputFile()
+    {
+        return $this->inputFile;
     }
     
     /**
@@ -127,7 +159,17 @@ class Field
      **/
     public function insertOutputIntoPreview($outputName, $outputPath)
     {
-        return str_replace(sprintf('{{%s}}', $outputName), $outputPath, $this->previewTemplate);
+        return str_replace(
+            [
+                sprintf('{{%s.path}}', $outputName),
+                sprintf('{{%s.name}}', $outputName)
+            ],
+            [
+                $outputPath,
+                pathinfo($outputPath,  PATHINFO_BASENAME)
+            ],
+            $this->previewTemplate
+        );
     }
     
      /**

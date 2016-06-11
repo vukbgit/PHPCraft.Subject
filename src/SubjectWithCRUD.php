@@ -28,6 +28,7 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
     protected $dbTable;
     protected $dbView;
     protected $primaryKey;
+    protected $formPostFields;
     protected $exportFields;
 
     /**
@@ -48,6 +49,7 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
      * @param string $dbTable database table name
      * @param string $dbView database view name
      * @param string $primaryKey
+     * @param array $postedFieldsDefinition definition of fields to be extracted from POST
      * @param array $exportFields view fields to be selected for export
      * @param array $routeParameters informations extracted from current request by route matching pattern
      **/
@@ -68,16 +70,21 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
         $dbTable = false,
         $dbView = false,
         $primaryKey = false,
+        $postedFieldsDefinition = false,
         $exportFields = false,
         $routeParameters = array()
     ) {
         parent::__construct($httpRequest, $httpResponse, $httpStream, $templateRenderer, $cookie, $queryBuilder, $application, $area, $subject, $action, $language, $routeParameters);
+        $this->httpRequest = &$httpRequest;
+        $this->httpResponse = &$httpResponse;
+        $this->httpStream =& $httpStream;
         $this->message = $message;
         $this->message->setCookie($cookie);
         $this->csv = $csv;
         $this->dbTable = $dbTable;
         $this->dbView = $dbView;
         $this->primaryKey = $primaryKey;
+        $this->postedFieldsDefinition = $postedFieldsDefinition;
         $this->exportFields = $exportFields;
     }
     
@@ -207,6 +214,14 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
      */
     protected function execUpdateForm($updateGlobalAction = array())
     {
+        //global action
+        $this->setGlobalAction(
+            [
+                'url' => implode('', $this->pathToSubject) . 'updateForm',
+                'action' => 'updateForm',
+                'label' => $this->translations[$this->area]['operations']['update'] . ' ' . $this->translations[$this->subject]['singular']
+            ]
+        );
         // form translations
         $this->addTranslations('form', sprintf('private/global/locales/%s/form.ini', $this->language));
         // get record id
@@ -218,52 +233,6 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
         if($updateGlobalAction) $this->setGlobalAction($updateGlobalAction);
         // render template
         $this->renderTemplate(sprintf('%s/%s/saveForm', $this->area, $this->subject));
-    }
-    
-    /**
-     * Saves record
-     * @param array $arguments fields to be extracted from posted values as required from filter_input_array
-     */
-    protected function execSave($arguments = array())
-    {
-        $input = filter_input_array(INPUT_POST, $arguments);
-        $this->queryBuilder->table($this->dbTable);
-        //subsubject
-        if(!$input[$this->primaryKey]) {
-            //insert
-            try{
-                unset($input[$this->primaryKey]);
-                $recordId = $this->queryBuilder->insert($input);
-                $this->message->save('cookies','success',$this->translations[$this->subject]['insert_success']);
-            } catch(\PDOException $exception) {
-                $error = $this->queryBuilder->handleQueryException($exception);
-                switch($error[0]) {
-                    case 'integrity_constraint_violation_duplicate_entry':
-                        $message = $this->translations[$this->subject][$error[0].'_'.$error[1]];
-                    break;
-                }
-                $this->message->save('cookies','danger',$message);
-            }
-        } else {
-            //update
-            try{
-                $recordId = $input[$this->primaryKey];
-                unset($input[$this->primaryKey]);
-                $this->queryBuilder->where($this->primaryKey, $recordId);
-                $this->queryBuilder->update($input);
-                $this->message->save('cookies','success',$this->translations[$this->subject]['update_success']);
-            } catch(\PDOException $exception) {
-                $error = $this->queryBuilder->handleQueryException($exception);
-                switch($error[0]) {
-                    case 'integrity_constraint_violation_duplicate_entry':
-                        $message = $this->translations[$this->subject][$error[0].'_'.$error[1]];
-                    break;
-                }
-                $this->message->save('cookies','danger',$message);
-            }
-        }
-        //redirect to default action
-        $this->httpResponse->setHeader('Location', $this->subjectBaseUrl);
     }
     
     /**
@@ -279,15 +248,40 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
             try{
                 unset($input[$this->primaryKey]);
                 $recordId = $this->queryBuilder->insert($input);
-                $this->message->save('cookies','success',$this->translations[$this->subject]['insert_success']);
+                $this->message->save('cookies','success',sprintf($this->translations[$this->subject]['insert_success'], $this->translations[$this->subject]['singular']));
             } catch(\PDOException $exception) {
                 $error = $this->queryBuilder->handleQueryException($exception);
-                switch($error[0]) {
-                    case 'integrity_constraint_violation_duplicate_entry':
-                        $message = $this->translations[$this->subject][$error[0].'_'.$error[1]];
-                    break;
-                }
+                $message = $this->translations[$this->subject][$error[0].'_'.$error[1]];
                 $this->message->save('cookies','danger',$message);
+                $redirectAction = 'insert';
+            }
+        }
+        //redirect
+        $redirectAction = $redirectAction ? $redirectAction : 'list';
+        $this->httpResponse = $this->httpResponse->withHeader('Location', implode('', $this->pathToSubject) . $redirectAction);
+    }
+    
+    /**
+     * Inserts record
+     * @param array $arguments fields to be extracted from posted values as required from filter_input_array
+     * @param string $redirectAction
+     */
+    protected function execUpdate($arguments = array(), $redirectAction = null)
+    {
+        $input = filter_input_array(INPUT_POST, $arguments);
+        if($input) {
+            $this->queryBuilder->table($this->dbTable);
+            try{
+                $recordId = $input[$this->primaryKey];
+                unset($input[$this->primaryKey]);
+                $this->queryBuilder->where($this->primaryKey, $recordId);
+                $this->queryBuilder->update($input);
+                $this->message->save('cookies','success',$this->translations[$this->subject]['update_success']);
+            } catch(\PDOException $exception) {
+                $error = $this->queryBuilder->handleQueryException($exception);
+                $message = $this->translations[$this->subject][$error[0].'_'.$error[1]];
+                $this->message->save('cookies','danger',$message);
+                $redirectAction = 'insert';
             }
         }
         //redirect
@@ -312,24 +306,26 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
     
     /**
      * Deletes record
+     *
+     * @param string $redirectAction
      */
-    protected function execDelete()
+    protected function execDelete($redirectAction = null)
     {
         $recordId = filter_input(INPUT_POST, $this->primaryKey, FILTER_VALIDATE_INT);
         if($recordId){
             try{
                 $this->queryBuilder->table($this->dbTable);
-                //$this->queryBuilder->where($this->primaryKey,$recordId);
                 $this->queryBuilder->delete([$this->primaryKey => $recordId]);
-                $this->message->save('cookies','success',$this->translations[$this->subject]['delete_success']);
+                $this->message->save('cookies','success',sprintf($this->translations[$this->subject]['delete_success'], $this->translations[$this->subject]['singular']));
             } catch(Exception $e) {
                 $error = handleQueryError($e->getCode(),$e->getMessage());
                 $message = $translations[CURRENT_SECTION][$error[0].'_'.$error[1]];
                 $this->message->save('cookies','danger',$message);
             }
         }
-        //redirect to default action
-        $this->httpResponse = $this->httpResponse->withHeader('Location', $this->subjectBaseUrl);
+        //redirect
+        $redirectAction = $redirectAction ? $redirectAction : 'list';
+        $this->httpResponse = $this->httpResponse->withHeader('Location', implode('', $this->pathToSubject) . $redirectAction);
     }
     
     /**

@@ -56,8 +56,8 @@ class Subject
         $language,
         $routeParameters = array()
     ) {
-        $this->httpRequest =& $httpRequest;
-        $this->httpResponse =& $httpResponse;
+        $this->httpRequest = &$httpRequest;
+        $this->httpResponse = &$httpResponse;
         $this->httpStream =& $httpStream;
         $this->templateRenderer = $templateRenderer;
         $this->cookie = $cookie;

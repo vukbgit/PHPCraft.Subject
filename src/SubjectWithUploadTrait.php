@@ -6,6 +6,7 @@ trait SubjectWithUploadTrait {
     protected $uploader;
     protected $uploadOk;
     protected $messages;
+    protected $uploadFieldsDefinitions;
     protected $uploadFields;
     protected $uploadedField;
     
@@ -21,6 +22,36 @@ trait SubjectWithUploadTrait {
     }
     
     /**
+     * Sets uploadField definitions
+     * @param array $uploadFieldsDefinitions indexed by field names
+     **/
+    public function setUploadFieldsDefinitions()
+    {
+        throw new \Exception(sprintf('%s class must implement setUploadFieldsDefinitions() method that defines fields', $this->subject));
+        $uploadFieldsDefinitions = [
+            'field-name' => [
+                'validations' => [
+                    [
+                        'type' => 'upload-type', // see upload class
+                        'options' => [
+                            'allowed' => ['extension'],
+                        ],
+                        'message' => 'translation-from-translations-array'
+                    ]
+                    
+                ],
+                'outputs' => [
+                    'output-name' => [
+                        'destination' =>  'path-for-saving/'
+                    ]
+                ],
+                'previewTemplate' => 'html-code-with-placeholders-{{field-name.[path|name]}}'
+            ]
+        ];
+        $this->uploadFieldsDefinitions = $uploadFieldsDefinitions;
+    }
+    
+    /**
      * Adds an uploadField definition
      * @param string $field
      * @param array $outputs definitions for uploaded file different outputs
@@ -29,19 +60,28 @@ trait SubjectWithUploadTrait {
      **/
     protected function addUploadField($fieldName, $outputs, $validations = null, $previewTemplate = null)
     {
+        //validation messages
+        if($validations) {
+            foreach($validations as $validation) {
+                if(isset($validation['messageKey'])) {
+                    $validation['message'] = $this->translations['form']['upload'][$validation['messageKey']];
+                }
+            }
+        }
         $this->uploadFields[$fieldName] = new Upload\Field($fieldName, $validations, $previewTemplate);
         foreach($outputs as $outputName => $output) {
             $this->uploadFields[$fieldName]->addOutput($outputName, $output['destination']);
         }
+        $this->templateParameters['uploadPreviewsTemplates'][$fieldName] = $previewTemplate;
     }
     
     /**
-     * Adds one or more uploadField definitions
-     * @param array $uploadFields indexed by field names
+     * Adds uploadField definitions
      **/
-    protected function addUploadFields($uploadFields)
+    protected function addUploadFields()
     {
-        foreach((array) $uploadFields as $field => $uploadField) {
+        $this->templateParameters['uploadPreviewsTemplates'] = array();
+        foreach((array) $this->uploadFieldsDefinitions as $field => $uploadField) {
             $validations = isset($uploadField['validations']) ? $uploadField['validations'] : null;
             $previewTemplate = isset($uploadField['previewTemplate']) ? $uploadField['previewTemplate'] : null;
             $this->addUploadField($field, $uploadField['outputs'], $validations, $previewTemplate);
@@ -53,6 +93,7 @@ trait SubjectWithUploadTrait {
      **/
     protected function handleUpload()
     {
+        $this->uploadedField = array_keys($_FILES)[0];
         //check if any uploaded file for a defined field
         $this->uploadOk = $this->checkUpload();
         if(!$this->uploadOk) {
@@ -68,13 +109,6 @@ trait SubjectWithUploadTrait {
      **/
     protected function checkUpload()
     {
-        //check for which field the file has been sent
-        $this->uploadedField = filter_input(INPUT_POST, 'uploadedField', FILTER_SANITIZE_STRING);
-        //no uploaded field
-        if(!$this->uploadedField) {
-            $this->messages[] = 'upload file with name "uploadedField" must be set into upload form for upload to work';
-            return false;
-        }
         //no upload field defined for uploaded field
         if(!isset($this->uploadFields[$this->uploadedField])) {
             $this->messages[] = sprintf('No definition set for POST uploadField field "%s"', $this->uploadedField);
@@ -97,23 +131,54 @@ trait SubjectWithUploadTrait {
             }
             $json->error = implode('\n', $this->messages);
         } else {
+            //input file informations
+            $json->input = [
+                'name' => $this->uploadFields[$this->uploadedField]->getInputFile(),
+                'hash' => $this->uploadFields[$this->uploadedField]->getInputHash()
+            ];
             // generated file(s) previews
-            $json->initialPreview = $this->uploadFields[$this->uploadedField]->getPreviews();
+            //$json->initialPreview = $this->uploadFields[$this->uploadedField]->getPreviews();
             // generated file(s) paths
             $json->outputs = $this->uploadFields[$this->uploadedField]->getOutputsFiles();
         }
         /*$json->initialPreviewConfig = [
             [
-                'type' => 'image',
-                'caption' => 'CAPTION', 
-                'width' => '120px',
-                'size' => '100',
-                'frameClass' => 'my-awesome-frameClass'
-                //url: 'http://localhost/avatar/delete', // server delete action 
-                //key: 100, 
+                //'type' => 'image',
+                //'caption' => 'CAPTION', 
+                //'width' => '120px',
+                //'size' => '100',
+                //'frameClass' => 'my-awesome-frameClass'
+                'url' => sprintf('%sdeleteUploadField/%s', implode('', $this->pathToSubject), $json->inputHash), // server delete action 
                 //extra: {id: 100}
             ]
         ];*/
         return json_encode($json);
+    }
+    
+    /**
+     * Riminder to implement execUpdateForm
+     * @throws Exception always, unless overridden
+     **/
+    protected function execUpdateForm($updateGlobalAction = array())
+    {
+        throw new \Exception(sprintf('%s class must implement execUpdateForm() method that calls setUploadFieldsDefinitions and eventually includes private/global/locales/selected-language/form.ini if necessary', $this->subject));
+    }
+    
+     /**
+     * Riminder to override execUpload
+     * @throws Exception always, unless overridden
+     **/
+    protected function execUpload()
+    {
+        throw new \Exception(sprintf('%s class must implement execUpload()  method that calls setUploadFieldsDefinitions, eventually includes private/global/locales/selected-language/form.ini if necessary and calls handleUpload()', $this->subject));
+    }
+    
+    /**
+     * Outputs to browser upload outcome in json format for ajax calls benefit
+     * @return string json code
+     **/
+    protected function execDeleteUploadField()
+    {
+        echo '[]';
     }
 }
