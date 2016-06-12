@@ -177,8 +177,35 @@ trait SubjectWithUploadTrait {
      * Outputs to browser upload outcome in json format for ajax calls benefit
      * @return string json code
      **/
-    protected function execDeleteUploadField()
+    protected function checkUploadOutputsToDelete()
     {
-        echo '[]';
+        //get record
+        $recordId = filter_input(INPUT_POST, $this->primaryKey, FILTER_VALIDATE_INT);
+        $this->queryBuilder->table($this->dbView);
+        $this->queryBuilder->where($this->primaryKey,$recordId);
+        $record = $this->queryBuilder->get()[0];
+        $fields = array_keys($this->uploadFieldsDefinitions);
+        //loop defined upload fields
+        foreach($fields as $field) {
+            //get record field value
+            $fieldValue = json_decode($record->$field);
+            //skip empty field
+            if(!$fieldValue) {
+                continue;
+            }
+            //get posted value
+            if($this->action == 'update') {
+                $postedInputs = array_keys(get_object_vars(json_decode($_POST[$field])));
+            }
+            //loop inputs
+            foreach((array) $fieldValue as $hash => $input) {
+                if($this->action == 'delete' || !in_array($hash, $postedInputs)) {
+                    //loop outputs
+                    foreach($input->outputs as $output) {
+                        unlink($output->path);
+                    }
+                }
+            }
+        }
     }
 }
