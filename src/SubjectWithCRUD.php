@@ -9,7 +9,7 @@ namespace PHPCraft\Subject;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamInterface;
-use PHPCraft\Template\RendererInterface;
+use PHPCraft\Template\TemplateInterface;
 use PHPCraft\Cookie\CookieInterface;
 use PHPCraft\Database\QueryBuilderInterface;
 use PHPCraft\Message\Message;
@@ -36,7 +36,7 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
      * @param Psr\Http\Message\RequestInterface $httpRequest HTTP request handler instance
      * @param Psr\Http\Message\ResponseInterface $httpResponse HTTP response handler instance
      * @param Psr\Http\Message\StreamInterface $httpStream HTTP stream handler instance
-     * @param PHPCraft\Template\RendererInterface $templateRenderer template renderer instance
+     * @param PHPCraft\Template\TemplateInterface $templateRenderer template renderer instance
      * @param PHPCraft\Database\QueryBuilderInterface $queryBuilder query builder instance
      * @param PHPCraft\Cookie\CookieInterface $cookie, instance
      * @param PHPCraft\Message\Message $message instance
@@ -57,7 +57,7 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
         RequestInterface &$httpRequest,
         ResponseInterface &$httpResponse,
         StreamInterface &$httpStream,
-        RendererInterface $templateRenderer,
+        TemplateInterface $templateRenderer,
         CookieInterface $cookie,
         QueryBuilderInterface $queryBuilder,
         Message $message,

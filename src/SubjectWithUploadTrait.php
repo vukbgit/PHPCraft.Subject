@@ -42,7 +42,8 @@ trait SubjectWithUploadTrait {
                 ],
                 'outputs' => [
                     'output-name' => [
-                        'destination' =>  'path-for-saving/'
+                        'destination' =>  'path-for-saving/',
+                        'processor' => 'method-name' //called over output after upload
                     ]
                 ],
                 'previewTemplate' => 'html-code-with-placeholders-{{field-name.[path|name]}}'
@@ -101,6 +102,19 @@ trait SubjectWithUploadTrait {
         }
         //exec upload
         $this->uploadOk = $this->uploadFields[$this->uploadedField]->handleUpload($this->uploader);
+        //outputs post processing
+        $outputs = $this->uploadFields[$this->uploadedField]->getOutputsFiles();
+        foreach($this->uploadFieldsDefinitions[$this->uploadedField]['outputs'] as $output => $outputDefinition) {
+            if($outputDefinition['processor']) {
+                if(!method_exists($this, $outputDefinition['processor'])) {
+                    $this->uploadOk = false;
+                    $this->messages[] = sprintf('Class <b>%s</b> must define method <b>%s</b> to process output <b>%s</b> of upload field <b>%s</b>', $this->subject, $outputDefinition['processor'], $output, $this->uploadedField);
+                    break;
+                }
+                $this->{$outputDefinition['processor']}($outputs[$output]['path']);
+            }
+        }
+        
     }
     
     /**
@@ -113,6 +127,15 @@ trait SubjectWithUploadTrait {
         if(!isset($this->uploadFields[$this->uploadedField])) {
             $this->messages[] = sprintf('No definition set for POST uploadField field "%s"', $this->uploadedField);
             return false;
+        }
+        //no processing method implemented for any of outputs
+        foreach($this->uploadFieldsDefinitions[$this->uploadedField]['outputs'] as $output => $outputDefinition) {
+            if($outputDefinition['processor']) {
+                if(!method_exists($this, $outputDefinition['processor'])) {
+                    $this->messages[] = sprintf('Class <b>%s</b> must define method <b>%s</b> to process output <b>%s</b> of upload field <b>%s</b>', $this->subject, $outputDefinition['processor'], $output, $this->uploadedField);
+                    return false;
+                }
+            }
         }
         return true;
     }
@@ -130,6 +153,7 @@ trait SubjectWithUploadTrait {
                 $this->messages[] = implode('\n', $this->uploader->getMessages());
             }
             $json->error = implode('\n', $this->messages);
+            $this->httpResponse = $this->httpResponse->withStatus('412', $json->error);
         } else {
             //input file informations
             $json->input = [

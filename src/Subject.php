@@ -9,7 +9,7 @@ namespace PHPCraft\Subject;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamInterface;
-use PHPCraft\Template\RendererInterface;
+use PHPCraft\Template\TemplateInterface;
 use PHPCraft\Cookie\CookieInterface;
 
 class Subject
@@ -34,7 +34,7 @@ class Subject
      * @param Psr\Http\Message\RequestInterface $httpRequest HTTP request handler instance
      * @param Psr\Http\Message\ResponseInterface $httpResponse HTTP response handler instance
      * @param Psr\Http\Message\StreamInterface $httpStream HTTP stream handler instance
-     * @param PHPCraft\Template\RendererInterface $templateRenderer template renderer instance
+     * @param PHPCraft\Template\TemplateInterface $templateRenderer template renderer instance
      * @param PHPCraft\Cookie\CookieInterface $cookie, instance
      * @param string $application current PHPCraft application
      * @param string $area current PHPCraft area
@@ -47,7 +47,7 @@ class Subject
         RequestInterface &$httpRequest,
         ResponseInterface &$httpResponse,
         StreamInterface &$httpStream,
-        RendererInterface $templateRenderer,
+        TemplateInterface $templateRenderer,
         CookieInterface $cookie,
         $application,
         $area,
