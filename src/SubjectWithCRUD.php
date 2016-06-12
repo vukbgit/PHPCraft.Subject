@@ -36,7 +36,7 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
      * @param Psr\Http\Message\RequestInterface $httpRequest HTTP request handler instance
      * @param Psr\Http\Message\ResponseInterface $httpResponse HTTP response handler instance
      * @param Psr\Http\Message\StreamInterface $httpStream HTTP stream handler instance
-     * @param PHPCraft\Template\TemplateInterface $templateRenderer template renderer instance
+     * @param PHPCraft\Template\TemplateInterface $template template renderer instance
      * @param PHPCraft\Database\QueryBuilderInterface $queryBuilder query builder instance
      * @param PHPCraft\Cookie\CookieInterface $cookie, instance
      * @param PHPCraft\Message\Message $message instance
@@ -57,7 +57,7 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
         RequestInterface &$httpRequest,
         ResponseInterface &$httpResponse,
         StreamInterface &$httpStream,
-        TemplateInterface $templateRenderer,
+        TemplateInterface $template,
         CookieInterface $cookie,
         QueryBuilderInterface $queryBuilder,
         Message $message,
@@ -74,7 +74,7 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
         $exportFields = false,
         $routeParameters = array()
     ) {
-        parent::__construct($httpRequest, $httpResponse, $httpStream, $templateRenderer, $cookie, $queryBuilder, $application, $area, $subject, $action, $language, $routeParameters);
+        parent::__construct($httpRequest, $httpResponse, $httpStream, $template, $cookie, $queryBuilder, $application, $area, $subject, $action, $language, $routeParameters);
         $this->httpRequest = &$httpRequest;
         $this->httpResponse = &$httpResponse;
         $this->httpStream =& $httpStream;

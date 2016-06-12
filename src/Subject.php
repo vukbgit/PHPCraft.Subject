@@ -17,7 +17,7 @@ class Subject
     protected $httpRequest;
     protected $httpResponse;
     protected $httpStream;
-    protected $templateRenderer;
+    protected $template;
     protected $cookie;
     protected $application;
     protected $area;
@@ -34,7 +34,7 @@ class Subject
      * @param Psr\Http\Message\RequestInterface $httpRequest HTTP request handler instance
      * @param Psr\Http\Message\ResponseInterface $httpResponse HTTP response handler instance
      * @param Psr\Http\Message\StreamInterface $httpStream HTTP stream handler instance
-     * @param PHPCraft\Template\TemplateInterface $templateRenderer template renderer instance
+     * @param PHPCraft\Template\TemplateInterface $template template renderer instance
      * @param PHPCraft\Cookie\CookieInterface $cookie, instance
      * @param string $application current PHPCraft application
      * @param string $area current PHPCraft area
@@ -47,7 +47,7 @@ class Subject
         RequestInterface &$httpRequest,
         ResponseInterface &$httpResponse,
         StreamInterface &$httpStream,
-        TemplateInterface $templateRenderer,
+        TemplateInterface $template,
         CookieInterface $cookie,
         $application,
         $area,
@@ -59,7 +59,7 @@ class Subject
         $this->httpRequest = &$httpRequest;
         $this->httpResponse = &$httpResponse;
         $this->httpStream =& $httpStream;
-        $this->templateRenderer = $templateRenderer;
+        $this->template = $template;
         $this->cookie = $cookie;
         $this->application = $application;
         $this->area = $area;
@@ -195,7 +195,7 @@ class Subject
             $path = sprintf('%s/%s/%s', $this->area, $this->subject, $this->action);
         }
         $this->templateParameters['translations'] = $this->translations;
-        $html = $this->templateRenderer->render($path, $this->templateParameters);
+        $html = $this->template->render($path, $this->templateParameters);
         $this->httpStream->write($html);
     }
 }

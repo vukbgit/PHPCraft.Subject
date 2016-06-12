@@ -9,7 +9,7 @@ namespace PHPCraft\Subject;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamInterface;
-use PHPCraft\Template\RendererInterface;
+use PHPCraft\Template\TemplateInterface;
 use PHPCraft\Cookie\CookieInterface;
 use PHPCraft\Database\QueryBuilderInterface;
 
@@ -25,7 +25,7 @@ class SubjectWithDatabase extends Subject
      * @param Psr\Http\Message\RequestInterface $httpRequest HTTP request handler instance
      * @param Psr\Http\Message\ResponseInterface $httpResponse HTTP response handler instance
      * @param Psr\Http\Message\StreamInterface $httpStream HTTP stream handler instance
-     * @param PHPCraft\Template\RendererInterface $templateRenderer template renderer instance
+     * @param PHPCraft\Template\TemplateInterface $template template renderer instance
      * @param PHPCraft\Cookie\CookieInterface $cookieBuilder, instance
      * @param PHPCraft\Database\QueryBuilderInterface $queryBuilder query builder instance
      * @param string $application current PHPCraft application
@@ -39,7 +39,7 @@ class SubjectWithDatabase extends Subject
         RequestInterface $httpRequest,
         ResponseInterface $httpResponse,
         StreamInterface $httpStream,
-        RendererInterface $templateRenderer,
+        TemplateInterface $template,
         CookieInterface $cookieBuilder,
         QueryBuilderInterface $queryBuilder,
         $application,
@@ -49,7 +49,7 @@ class SubjectWithDatabase extends Subject
         $language,
         $routeParameters = array()
     ) {
-        parent::__construct($httpRequest, $httpResponse, $httpStream, $templateRenderer, $cookieBuilder, $application, $area, $subject, $action, $language, $routeParameters);
+        parent::__construct($httpRequest, $httpResponse, $httpStream, $template, $cookieBuilder, $application, $area, $subject, $action, $language, $routeParameters);
         $this->queryBuilder = $queryBuilder;
         
     }
