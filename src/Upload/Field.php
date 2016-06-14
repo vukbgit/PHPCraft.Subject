@@ -104,7 +104,7 @@ class Field
         foreach($this->outputs as $outputName => $output) {
             $outputPath = $output->getDestination() .  $this->uploader->getUploadedFileInfo()['name'];
             if(is_file($outputPath)){
-                $outputPath = sprintf('%s%s_$s', $output->getDestination(), time(),  $this->uploader->getUploadedFileInfo()['name']);
+                $outputPath = sprintf('%s%s_%s', $output->getDestination(), time(),  $this->uploader->getUploadedFileInfo()['name']);
             }
             copy($temporaryFile, $outputPath);
             $this->outputsFiles[$outputName] = [
