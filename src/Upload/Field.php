@@ -85,40 +85,35 @@ class Field
         $this->setInput();
         // tell uploader which field is uploaded
         $this->uploader->setField($this->field);
-        // loop field outputs
-        //$preview = '';
-        $i=0;
-        foreach($this->outputs as $outputName => $output) {
-            // set destination
-            $this->uploader->setDestination($output->getDestination());
-            // set validation (for first output only)
-            if(!$i) {
-                // loop validation rules
-                foreach($this->validations as $validation) {
-                    $options = isset($validation['options']) ? $validation['options'] : null;
-                    $message = isset($validation['message']) ? $validation['message'] : null;
-                    // set rule
-                    $this->uploader->addValidationRule($validation['type'], $options, $message);    
-                }
-            }
-            // upload
-            if(!$this->uploader->process()) {
-                // failure
-                return false;
-            } else {
-                // success
-                $outputPath = $output->getDestination() .  $this->uploader->getUploadedFileInfo()['name'];
-                $this->outputsFiles[$outputName] = [
-                    'name' => $this->uploader->getUploadedFileInfo()['name'],
-                    'path' => $outputPath
-                ];
-                // inject output path into preview
-                //$preview = $this->insertOutputIntoPreview($outputName, $outputPath);
-            }
-            $i++;
+        // make temporary file
+        $this->uploader->setDestination(sys_get_temp_dir());
+        // loop validation rules
+        foreach($this->validations as $validation) {
+            $options = isset($validation['options']) ? $validation['options'] : null;
+            $message = isset($validation['message']) ? $validation['message'] : null;
+            // set rule
+            $this->uploader->addValidationRule($validation['type'], $options, $message);
         }
-        // store preview
-        //$this->previews[] = $preview;
+        // upload
+        if(!$this->uploader->process()) {
+            // failure
+            return false;
+        }
+        // loop field outputs
+        $temporaryFile = sprintf('%s/%s', sys_get_temp_dir(), $this->uploader->getUploadedFileInfo()['name']);
+        foreach($this->outputs as $outputName => $output) {
+            $outputPath = $output->getDestination() .  $this->uploader->getUploadedFileInfo()['name'];
+            if(is_file($outputPath)){
+                $outputPath = sprintf('%s%s_$s', $output->getDestination(), time(),  $this->uploader->getUploadedFileInfo()['name']);
+            }
+            copy($temporaryFile, $outputPath);
+            $this->outputsFiles[$outputName] = [
+                'name' => $this->uploader->getUploadedFileInfo()['name'],
+                'path' => $outputPath
+            ];
+        }
+        // delete temporary file
+        unlink($temporaryFile);
         // close upload
         $this->uploader->close();
         return true;
@@ -151,27 +146,6 @@ class Field
         return $this->outputsFiles;
     }
 
-    /**
-     * insert output path into preview template
-     * @param string $outputName
-     * @param string $outputPath
-     * @return string preview html code with output path inserted (if relative placeholder is contained into preview code)
-     **/
-    public function insertOutputIntoPreview($outputName, $outputPath)
-    {
-        return str_replace(
-            [
-                sprintf('{{%s.path}}', $outputName),
-                sprintf('{{%s.name}}', $outputName)
-            ],
-            [
-                $outputPath,
-                pathinfo($outputPath,  PATHINFO_BASENAME)
-            ],
-            $this->previewTemplate
-        );
-    }
-    
      /**
      * Return previewTemplate filled with correct destinations
      * @return array

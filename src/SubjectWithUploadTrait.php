@@ -9,16 +9,26 @@ trait SubjectWithUploadTrait {
     protected $uploadFieldsDefinitions;
     protected $uploadFields;
     protected $uploadedField;
+    protected $image;
     
     /**
      * Injects the uploader instance
-     * @param $uploader instance of upload adapter
+     * @param $uploader instance of upload adapter implementing PHPCraft\Upload\UploadInterface
      **/
-    public function injectUploader($uploader)
+    public function injectUploader(\PHPCraft\Upload\UploadInterface $uploader)
     {
         $this->uploader = $uploader;
         $this->uploadFields = array();
         $this->messages = array();
+    }
+    
+    /**
+     * Injects the image instance
+     * @param $image instance of image adapter implementing PHPCraft\Image\ImageInterface
+     **/
+    public function injectImage(\PHPCraft\Image\ImageInterface $image)
+    {
+        $this->image = $image;
     }
     
     /**
@@ -106,11 +116,6 @@ trait SubjectWithUploadTrait {
         $outputs = $this->uploadFields[$this->uploadedField]->getOutputsFiles();
         foreach($this->uploadFieldsDefinitions[$this->uploadedField]['outputs'] as $output => $outputDefinition) {
             if($outputDefinition['processor']) {
-                if(!method_exists($this, $outputDefinition['processor'])) {
-                    $this->uploadOk = false;
-                    $this->messages[] = sprintf('Class <b>%s</b> must define method <b>%s</b> to process output <b>%s</b> of upload field <b>%s</b>', $this->subject, $outputDefinition['processor'], $output, $this->uploadedField);
-                    break;
-                }
                 $this->{$outputDefinition['processor']}($outputs[$output]['path']);
             }
         }
@@ -160,22 +165,9 @@ trait SubjectWithUploadTrait {
                 'name' => $this->uploadFields[$this->uploadedField]->getInputFile(),
                 'hash' => $this->uploadFields[$this->uploadedField]->getInputHash()
             ];
-            // generated file(s) previews
-            //$json->initialPreview = $this->uploadFields[$this->uploadedField]->getPreviews();
             // generated file(s) paths
             $json->outputs = $this->uploadFields[$this->uploadedField]->getOutputsFiles();
         }
-        /*$json->initialPreviewConfig = [
-            [
-                //'type' => 'image',
-                //'caption' => 'CAPTION', 
-                //'width' => '120px',
-                //'size' => '100',
-                //'frameClass' => 'my-awesome-frameClass'
-                'url' => sprintf('%sdeleteUploadField/%s', implode('', $this->pathToSubject), $json->inputHash), // server delete action 
-                //extra: {id: 100}
-            ]
-        ];*/
         return json_encode($json);
     }
     
