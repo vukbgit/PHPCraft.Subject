@@ -115,7 +115,7 @@ trait SubjectWithUploadTrait {
         //outputs post processing
         $outputs = $this->uploadFields[$this->uploadedField]->getOutputsFiles();
         foreach($this->uploadFieldsDefinitions[$this->uploadedField]['outputs'] as $output => $outputDefinition) {
-            if($outputDefinition['processor']) {
+            if(isset($outputDefinition['processor'])) {
                 $this->{$outputDefinition['processor']}($outputs[$output]['path']);
             }
         }
