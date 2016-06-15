@@ -135,7 +135,7 @@ trait SubjectWithUploadTrait {
         }
         //no processing method implemented for any of outputs
         foreach($this->uploadFieldsDefinitions[$this->uploadedField]['outputs'] as $output => $outputDefinition) {
-            if($outputDefinition['processor']) {
+            if(isset($outputDefinition['processor'])) {
                 if(!method_exists($this, $outputDefinition['processor'])) {
                     $this->messages[] = sprintf('Class <b>%s</b> must define method <b>%s</b> to process output <b>%s</b> of upload field <b>%s</b>', $this->subject, $outputDefinition['processor'], $output, $this->uploadedField);
                     return false;
