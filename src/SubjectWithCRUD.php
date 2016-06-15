@@ -258,7 +258,7 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
         }
         //redirect
         $redirectAction = $redirectAction ? $redirectAction : 'list';
-        $this->httpResponse = $this->httpResponse->withHeader('Location', implode('', $this->pathToSubject) . $redirectAction);
+        $this->httpResponse = $this->httpResponse->withHeader('Location', $redirectAction);
     }
     
     /**
@@ -286,7 +286,7 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
         }
         //redirect
         $redirectAction = $redirectAction ? $redirectAction : 'list';
-        $this->httpResponse = $this->httpResponse->withHeader('Location', implode('', $this->pathToSubject) . $redirectAction);
+        $this->httpResponse = $this->httpResponse->withHeader('Location', $redirectAction);
     }
     
     /**
@@ -325,7 +325,7 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
         }
         //redirect
         $redirectAction = $redirectAction ? $redirectAction : 'list';
-        $this->httpResponse = $this->httpResponse->withHeader('Location', implode('', $this->pathToSubject) . $redirectAction);
+        $this->httpResponse = $this->httpResponse->withHeader('Location', $redirectAction);
     }
     
     /**
