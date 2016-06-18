@@ -172,6 +172,15 @@ trait SubjectWithUploadTrait {
     }
     
     /**
+     * Riminder to implement execInsertForm
+     * @throws Exception always, unless overridden
+     **/
+    protected function execInsertForm($updateGlobalAction = array())
+    {
+        throw new \Exception(sprintf('%s class must implement execInsertForm() method that calls setUploadFieldsDefinitions and eventually includes private/global/locales/selected-language/form.ini if necessary', $this->subject));
+    }
+    
+    /**
      * Riminder to implement execUpdateForm
      * @throws Exception always, unless overridden
      **/
