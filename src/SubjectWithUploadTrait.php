@@ -91,12 +91,15 @@ trait SubjectWithUploadTrait {
      **/
     protected function addUploadFields()
     {
+        //add fields
         $this->templateParameters['uploadPreviewsTemplates'] = array();
         foreach((array) $this->uploadFieldsDefinitions as $field => $uploadField) {
             $validations = isset($uploadField['validations']) ? $uploadField['validations'] : null;
             $previewTemplate = isset($uploadField['previewTemplate']) ? $uploadField['previewTemplate'] : null;
             $this->addUploadField($field, $uploadField['outputs'], $validations, $previewTemplate);
         }
+        //add PHP ini upload_max_filesize value
+        $this->templateParameters['uploadMaxFilesize'] = ini_get('upload_max_filesize');
     }
     
     /**
