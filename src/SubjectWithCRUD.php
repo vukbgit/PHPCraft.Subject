@@ -242,6 +242,8 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
      */
     protected function execInsert($arguments = array(), $redirectAction = null)
     {
+        // database translations
+        $this->addTranslations('database', sprintf('private/global/locales/%s/database.ini', $this->language));
         $input = filter_input_array(INPUT_POST, $arguments);
         if($input) {
             $this->queryBuilder->table($this->dbTable);
@@ -251,7 +253,11 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
                 $this->message->save('cookies','success',sprintf($this->translations[$this->subject]['insert_success'], $this->translations[$this->subject]['singular']));
             } catch(\PDOException $exception) {
                 $error = $this->queryBuilder->handleQueryException($exception);
-                $message = $this->translations[$this->subject][$error[0].'_'.$error[1]];
+                if($error[0]) {
+                    $message = $this->translations[$this->subject][$error[0].'_'.$error[1]];
+                } else {
+                    $message = sprintf($this->translations['database']['query_error'],$error[1]);
+                }
                 $this->message->save('cookies','danger',$message);
                 $redirectAction = 'insert';
             }
@@ -268,6 +274,8 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
      */
     protected function execUpdate($arguments = array(), $redirectAction = null)
     {
+        // database translations
+        $this->addTranslations('database', sprintf('private/global/locales/%s/database.ini', $this->language));
         $input = filter_input_array(INPUT_POST, $arguments);
         if($input) {
             $this->queryBuilder->table($this->dbTable);
@@ -279,7 +287,11 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
                 $this->message->save('cookies','success',$this->translations[$this->subject]['update_success']);
             } catch(\PDOException $exception) {
                 $error = $this->queryBuilder->handleQueryException($exception);
-                $message = $this->translations[$this->subject][$error[0].'_'.$error[1]];
+                if($error[0]) {
+                    $message = $this->translations[$this->subject][$error[0].'_'.$error[1]];
+                } else {
+                    $message = sprintf($this->translations['database']['query_error'],$error[1]);
+                }
                 $this->message->save('cookies','danger',$message);
                 $redirectAction = 'insert';
             }
