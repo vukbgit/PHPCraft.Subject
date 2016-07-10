@@ -64,7 +64,7 @@ class Subject
         $this->application = $application;
         $this->area = $area;
         $this->subject = $subject;
-        $this->action = $action;
+        $this->action = $this->sanitizeAction($action);
         $this->language = $language;
         $this->routeParameters = $routeParameters;
         $this->templateParameters = array(
@@ -76,6 +76,19 @@ class Subject
             'language' => $this->language
         );
         $this->translations = array();
+    }
+    
+    /**
+     * stores the path to current subject
+     **/
+    public function sanitizeAction($action){
+        return preg_replace_callback(
+            '/[-_](.)/',
+            function($matches) {
+                return strtoupper($matches[1]);
+            },
+            $action
+        );
     }
     
     /**
