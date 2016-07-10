@@ -242,6 +242,9 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
      */
     protected function execInsert($arguments = array(), $redirectAction = null)
     {
+        if(empty($arguments) && !empty($this->postedFieldsDefinition)) {
+            $arguments = $this->postedFieldsDefinition;
+        }
         // database translations
         $this->addTranslations('database', sprintf('private/global/locales/%s/database.ini', $this->language));
         $input = filter_input_array(INPUT_POST, $arguments);
@@ -274,6 +277,9 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
      */
     protected function execUpdate($arguments = array(), $redirectAction = null)
     {
+        if(empty($arguments) && !empty($this->postedFieldsDefinition)) {
+            $arguments = $this->postedFieldsDefinition;
+        }
         // database translations
         $this->addTranslations('database', sprintf('private/global/locales/%s/database.ini', $this->language));
         $input = filter_input_array(INPUT_POST, $arguments);
