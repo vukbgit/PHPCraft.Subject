@@ -64,7 +64,7 @@ class Subject
         $this->application = $application;
         $this->area = $area;
         $this->subject = $subject;
-        $this->action = $this->sanitizeAction($action);
+        $this->action = $action;
         $this->language = $language;
         $this->routeParameters = $routeParameters;
         $this->templateParameters = array(
@@ -139,7 +139,7 @@ class Subject
             $this->templateParameters['area'] = $this->area;
             $this->templateParameters['areaAuthentication'] = $this->areaAuthentication;
             $this->getBackPaths();
-            $this->{'exec'.ucfirst($this->action)}();
+            $this->{'exec'.ucfirst($this->sanitizeAction($this->action))}();
         } catch(Exception $exception) {
             throw new Exception(sprintf('no method for handling %s %s %s', $this->area, $this->subject, $this->action));
         }
