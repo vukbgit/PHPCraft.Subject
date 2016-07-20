@@ -121,20 +121,22 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
     * Adds ordering informations to query based on stored cookies
     */
     protected function setListOrder() {
-        $this->templateParameters['orderBy'] = $this->cookie->get('order-by');
+        $this->templateParameters['orderBy'] = json_decode($this->cookie->get('order-by'));
         $orderByField = filter_input(INPUT_POST, 'order-by', FILTER_SANITIZE_STRING);
         if(isset($orderByField)){
-            $direction = (isset($this->templateParameters['orderBy'][$this->subject][$orderByField]) && $this->templateParameters['orderBy'][$this->subject][$orderByField] == 'ASC') ? 'DESC' : 'ASC';
-            $this->cookie->set('order-by['.$this->subject.']['.$orderByField.']', $direction, self::PERMANENT_COOKIES_LIFE);
-            $this->templateParameters['orderBy'][$this->subject][$orderByField] = $direction;
+            if(!isset($this->templateParameters['orderBy'])) $this->templateParameters['orderBy'] = new \stdClass;
+            if(!isset($this->templateParameters['orderBy']->{$this->subject})) $this->templateParameters['orderBy']->{$this->subject} = new \stdClass;
+            $direction = (isset($this->templateParameters['orderBy']->{$this->subject}->$orderByField) && $this->templateParameters['orderBy']->{$this->subject}->$orderByField == 'ASC') ? 'DESC' : 'ASC';
+            $this->templateParameters['orderBy']->{$this->subject}->$orderByField = $direction;
+            $this->cookie->set('order-by', json_encode($this->templateParameters['orderBy']), self::PERMANENT_COOKIES_LIFE);
         }
         $removeOrderByField = filter_input(INPUT_POST, 'remove-order-by', FILTER_SANITIZE_STRING);
         if(isset($removeOrderByField)){
-            $this->cookie->delete('order-by['.$this->subject.']['.$removeOrderByField.']');
-            unset($this->templateParameters['orderBy'][$this->subject][$removeOrderByField]);
+            unset($this->templateParameters['orderBy']->{$this->subject}->$removeOrderByField);
+            $this->cookie->set('order-by', json_encode($this->templateParameters['orderBy']), self::PERMANENT_COOKIES_LIFE);
         }
-        if (isset($this->templateParameters['orderBy'][$this->subject])) {
-            foreach ($this->templateParameters['orderBy'][$this->subject] as $field => $direction) {
+        if (isset($this->templateParameters['orderBy']->{$this->subject})) {
+            foreach ($this->templateParameters['orderBy']->{$this->subject} as $field => $direction) {
                 $this->queryBuilder->orderBy($field, $direction);
             }
         }
