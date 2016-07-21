@@ -315,6 +315,14 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
      */
     protected function execDeleteForm()
     {
+        //global action
+        $this->setGlobalAction(
+            [
+                'url' => implode('', $this->pathToSubject) . 'deleteForm',
+                'action' => 'deleteForm',
+                'label' => $this->translations[$this->area]['operations']['delete'] . ' ' . $this->translations[$this->subject]['singular']
+            ]
+        );
         $recordId = isset($this->routeParameters['key']) ? $this->routeParameters['key'] : false;
         if($recordId) {
             $this->queryBuilder->table($this->dbView);
