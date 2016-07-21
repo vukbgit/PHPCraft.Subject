@@ -155,15 +155,15 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
             foreach ($input as $filterByField => $value) {
                 if($value !== '' && $value !== false) {
                     //$this->cookie->set('filter-by[' .$this->subject .'][' .$filterByField .']', $value,self::PERMANENT_COOKIES_LIFE);
-                    $this->templateParameters['filterBy'][$this->subject][$filterByField] = $value;
+                    $this->templateParameters['filterBy']->{$this->subject}->$filterByField = $value;
                 } else {
                     //$this->cookie->delete('filter-by[' . $this->subject . '][' . $filterByField .']');
-                    unset($this->templateParameters['filterBy'][$this->subject][$filterByField]);
+                    unset($this->templateParameters['filterBy']->{$this->subject}->$filterByField);
                 }
             }
             $this->cookie->set('filter-by', json_encode($this->templateParameters['filterBy']),self::PERMANENT_COOKIES_LIFE);
         }
-        if(!isset($this->templateParameters['filterBy'][$this->subject])) $this->templateParameters['filterBy'][$this->subject] = array();
+        if(!isset($this->templateParameters['filterBy']->{$this->subject})) $this->templateParameters['filterBy']->{$this->subject} = array();
     }
     
     /**
