@@ -293,7 +293,7 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
                 unset($input[$this->primaryKey]);
                 $this->queryBuilder->where($this->primaryKey, $recordId);
                 $this->queryBuilder->update($input);
-                $this->message->save('cookies','success',$this->translations[$this->subject]['update_success']);
+                $this->message->save('cookies','success',sprintf($this->translations[$this->subject]['update_success'], $this->translations[$this->subject]['singular']));
             } catch(\PDOException $exception) {
                 $error = $this->queryBuilder->handleQueryException($exception);
                 if($error[0]) {
