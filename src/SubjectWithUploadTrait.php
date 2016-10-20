@@ -230,7 +230,9 @@ trait SubjectWithUploadTrait {
                 if($this->action == 'delete' || !in_array($hash, $postedInputs)) {
                     //loop outputs
                     foreach($input->outputs as $output) {
-                        unlink($output->path);
+                        if(is_file($output->path)) {
+                            unlink($output->path);
+                        }
                     }
                 }
             }
