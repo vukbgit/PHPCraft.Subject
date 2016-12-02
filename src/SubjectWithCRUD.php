@@ -113,6 +113,8 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
     {
         //get records
         $this->templateParameters['records'] = $this->getList();
+        // form translations
+        $this->addTranslations('form', sprintf('private/global/locales/%s/list.ini', $this->language));
         //render
         $this->renderTemplate();
     }
