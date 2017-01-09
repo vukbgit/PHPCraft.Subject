@@ -8,21 +8,20 @@ namespace PHPCraft\Subject;
 
 abstract class SubjectWithCRUDChild extends SubjectWithCRUD
 {
-     protected $parent;
+     protected $parentSubject;
      
     /**
-     * Tries to exec current action
+     * Checks parent
      *
      * @throws Exception if parent has not been set
      * @throws Exception if there is no method defined to handle action
      **/
-    public function execAction()
+    public function checkParent()
     {
-        if(!$this->parent) {
+        if(!$this->parentSubject) {
             throw new \Exception('set parent for class ' . get_called_class());
         }
         $this->getParent();
-        parent::execAction();
     }
     
     /**
@@ -30,11 +29,9 @@ abstract class SubjectWithCRUDChild extends SubjectWithCRUD
      *
      * @param string $primaryKey
      */
-    public function setParent($primaryKey)
+    public function injectParent($parentInstance)
     {
-        $this->parent = [
-            'primaryKey' => $primaryKey
-        ];
+        $this->parentSubject = $parentInstance;
     }
     
     /**
@@ -43,7 +40,7 @@ abstract class SubjectWithCRUDChild extends SubjectWithCRUD
     private function getParent()
     {
         if(isset($this->routeParameters['parentId'])) {
-            $this->templateParameters['parent'] = $this->queryBuilder->table('v_societa')->where('societa_id', $this->routeParameters['parentId'])->get()[0];
+            $this->templateParameters['parent'] = $this->queryBuilder->table($this->parentSubject->dbView)->where('societa_id', $this->routeParameters['parentId'])->get()[0];
         }
     }
     
@@ -56,7 +53,7 @@ abstract class SubjectWithCRUDChild extends SubjectWithCRUD
     {
         $this->queryBuilder->table($this->dbView);
         if(isset($this->templateParameters['parent'])) {
-            $this->queryBuilder->where('societa_id', $this->templateParameters['parent']->{$this->parent['primaryKey']});
+            $this->queryBuilder->where('societa_id', $this->templateParameters['parent']->{$this->parentSubject->primaryKey});
         }
         if($fields) $this->queryBuilder->fields($fields);
         //order
