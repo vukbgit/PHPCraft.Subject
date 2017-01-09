@@ -260,14 +260,8 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
                 $recordId = $this->queryBuilder->insert($input);
                 $this->message->save('cookies','success',sprintf($this->translations[$this->subject]['insert_success'], $this->translations[$this->subject]['singular']));
             } catch(\PDOException $exception) {
-                $error = $this->queryBuilder->handleQueryException($exception);
-                if($error[0]) {
-                    $message = $this->translations[$this->subject][$error[0].'_'.$error[1]];
-                } else {
-                    $message = sprintf($this->translations['database']['query_error'],$error[1]);
-                }
-                $this->message->save('cookies','danger',$message);
-                $redirectAction = 'insert';
+                $this->handleError($exception);
+                $redirectAction = 'insertForm';
             }
         }
         //redirect
@@ -297,14 +291,8 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
                 $this->queryBuilder->update($input);
                 $this->message->save('cookies','success',sprintf($this->translations[$this->subject]['update_success'], $this->translations[$this->subject]['singular']));
             } catch(\PDOException $exception) {
-                $error = $this->queryBuilder->handleQueryException($exception);
-                if($error[0]) {
-                    $message = $this->translations[$this->subject][$error[0].'_'.$error[1]];
-                } else {
-                    $message = sprintf($this->translations['database']['query_error'],$error[1]);
-                }
-                $this->message->save('cookies','danger',$message);
-                $redirectAction = 'insert';
+                $this->handleError($exception);
+                $redirectAction = 'updateForm/' . $recordId;
             }
         }
         //redirect
@@ -348,10 +336,8 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
                 $this->queryBuilder->table($this->dbTable);
                 $this->queryBuilder->delete([$this->primaryKey => $recordId]);
                 $this->message->save('cookies','success',sprintf($this->translations[$this->subject]['delete_success'], $this->translations[$this->subject]['singular']));
-            } catch(Exception $e) {
-                $error = handleQueryError($e->getCode(),$e->getMessage());
-                $message = $translations[CURRENT_SECTION][$error[0].'_'.$error[1]];
-                $this->message->save('cookies','danger',$message);
+            } catch(\PDOException $exception) {
+                $this->handleError($exception);
             }
         }
         //redirect

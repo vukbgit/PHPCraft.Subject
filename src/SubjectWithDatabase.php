@@ -82,4 +82,21 @@ class SubjectWithDatabase extends Subject
         $this->primaryKey = $primaryKey;
         $this->fields = $fields;
     }
+    
+    /**
+     * Set basic query informations
+     *
+     * @param string $table table/view name
+     * @param string $primaryKey
+     * @param array $fields
+     **/
+    protected function handleError($exception){
+        $error = $this->queryBuilder->handleQueryException($exception);
+        if($error[0]) {
+            $message = $this->translations[$this->subject][$error[0].'_'.$error[1]];
+        } else {
+            $message = sprintf($this->translations['database']['query_error'],$error[1]);
+        }
+        $this->message->save('cookies','danger',$message);
+    }
 }
