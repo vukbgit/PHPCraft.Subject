@@ -361,10 +361,14 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
      */
     protected function execDeleteBulk()
     {
-        $ids = explode('|',$this->routeParameters['key']);
-        $this->queryBuilder->table($this->dbTable)
-        ->where($this->primaryKey, 'in', $ids)->delete();
-        $this->message->save('cookies','success',sprintf($this->translations[$this->subject]['delete_bulk_success'], count($ids), $this->translations[$this->subject]['plural']));
+        try{
+            $ids = explode('|',$this->routeParameters['key']);
+            $this->queryBuilder->table($this->dbTable)
+            ->where($this->primaryKey, 'in', $ids)->delete();
+            $this->message->save('cookies','success',sprintf($this->translations[$this->subject]['delete_bulk_success'], count($ids), $this->translations[$this->subject]['plural']));
+        } catch(\PDOException $exception) {
+            $this->handleError($exception);
+        }
         $this->httpResponse = $this->httpResponse->withHeader('Location', implode('', $this->pathToSubject) . 'list');
     }
 }
