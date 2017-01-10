@@ -40,7 +40,7 @@ abstract class SubjectWithCRUDChild extends SubjectWithCRUD
     private function getParent()
     {
         if(isset($this->routeParameters['parentId'])) {
-            $this->templateParameters['parent'] = $this->queryBuilder->table($this->parentSubject->dbView)->where('societa_id', $this->routeParameters['parentId'])->get()[0];
+            $this->templateParameters['parent'] = $this->queryBuilder->table($this->parentSubject->dbView)->where($this->parentSubject->primaryKey, $this->routeParameters['parentId'])->get()[0];
         }
     }
     
