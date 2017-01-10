@@ -16,7 +16,6 @@
         "phpcraft/database": "For database integration (SectionWithDatabase class)",
         "phpcraft/message": "For CRUD integration (SectionWithCRUD class)",
         "phpcraft/csv": "For CRUD integration (SectionWithCRUD class)",
-        "eonasdan/bootstrap-datetimepicker": "For datetime form fields",
         "aptoma/twig-markdown": "twig adapter for template markdown capability",
         "michelf/php-markdown": "markdown engine for template markdown capability"
     },
