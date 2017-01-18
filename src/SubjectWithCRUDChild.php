@@ -53,7 +53,7 @@ abstract class SubjectWithCRUDChild extends SubjectWithCRUD
     {
         $this->queryBuilder->table($this->dbView);
         if(isset($this->templateParameters['parent'])) {
-            $this->queryBuilder->where('societa_id', $this->templateParameters['parent']->{$this->parentSubject->primaryKey});
+            $this->queryBuilder->where($this->parentSubject->primaryKey, $this->templateParameters['parent']->{$this->parentSubject->primaryKey});
         }
         if($fields) $this->queryBuilder->fields($fields);
         //order
