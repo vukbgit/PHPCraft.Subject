@@ -17,7 +17,7 @@ use PHPCraft\Csv\CsvInterface;
 
 abstract class SubjectWithCRUD extends SubjectWithDatabase
 {
-    use SubjectWithNavigationTrait, SubjectWithGlobalActionsTrait;
+    use SubjectWithSideMenuTrait, SubjectWithGlobalActionsTrait;
 
     /**
      * life of very persisten cookies in seconds (157680000 = 5 years)
@@ -96,6 +96,7 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
     public function execAction()
     {
         $this->templateParameters['primaryKey'] = $this->primaryKey;
+        $this->templateParameters['sideMenuOpenend'] = $this->isSideMenuOpened();
         parent::execAction();
     }
     
