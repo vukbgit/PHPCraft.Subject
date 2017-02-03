@@ -49,7 +49,7 @@ abstract class SubjectWithCRUDChild extends SubjectWithCRUD
      *
      * @param array $fields to be selected
      */
-    public function getList($fields = array())
+    protected function getList($fields = array())
     {
         $this->queryBuilder->table($this->dbView);
         if(isset($this->templateParameters['parent'])) {
