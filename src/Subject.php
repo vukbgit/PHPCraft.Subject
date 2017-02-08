@@ -79,7 +79,8 @@ class Subject
     }
     
     /**
-     * stores the path to current subject
+     * turns action from slug-like form (with -) to method name (camelcase)
+     * @param string $action
      **/
     public function sanitizeAction($action){
         return preg_replace_callback(
@@ -93,8 +94,15 @@ class Subject
     
     /**
      * stores the path to current subject
+     * @param string $applicationBasePath
+     * @param string $areaBasePath
+     * @param string $subjectBasePath
+     * @param boolean $excludeLanguage
      **/
-    public function setPathToSubject($applicationBasePath, $areaBasePath, $subjectBasePath){
+    public function setPathToSubject($applicationBasePath, $areaBasePath, $subjectBasePath, $excludeLanguage = true){
+        if(!$excludeLanguage) {
+            $this->pathToSubject['language'] = $this->language;
+        }
         $this->pathToSubject['application'] = $applicationBasePath;
         $this->pathToSubject['area'] = $areaBasePath;
         $this->pathToSubject['subject'] = $subjectBasePath;
