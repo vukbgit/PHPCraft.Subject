@@ -253,7 +253,7 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
         }
         // database translations
         $this->addTranslations('database', sprintf('private/global/locales/%s/database.ini', $this->language));
-        $input = filter_input_array(INPUT_POST, $arguments);
+        $input = $this->processSaveInput(filter_input_array(INPUT_POST, $arguments));
         if($input) {
             $this->queryBuilder->table($this->dbTable);
             try{
@@ -282,7 +282,7 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
         }
         // database translations
         $this->addTranslations('database', sprintf('private/global/locales/%s/database.ini', $this->language));
-        $input = filter_input_array(INPUT_POST, $arguments);
+        $input = $this->processSaveInput(filter_input_array(INPUT_POST, $arguments));
         if($input) {
             $this->queryBuilder->table($this->dbTable);
             try{
@@ -299,6 +299,15 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
         //redirect
         $redirectAction = $redirectAction ? $redirectAction : 'list';
         $this->httpResponse = $this->httpResponse->withHeader('Location', $redirectAction);
+    }
+    
+    /**
+     * Processes save input before save query, to be overridden by derived class in case of input processing needed
+     * @param array $input
+     */
+    protected function processSaveInput($input)
+    {
+        return $input;
     }
     
     /**
