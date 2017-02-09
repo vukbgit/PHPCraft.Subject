@@ -19,7 +19,7 @@
         "aptoma/twig-markdown": "twig adapter for template markdown capability",
         "michelf/php-markdown": "markdown engine for template markdown capability",
         "tinymce/tinymce": "HTML WYSIWYG editor for richtext fields",
-        "cocur/slugify": "to manage slug into URLs",
+        "cocur/slugify": "to manage slug into URLs"
     },
     "autoload": {
         "psr-4" : {
