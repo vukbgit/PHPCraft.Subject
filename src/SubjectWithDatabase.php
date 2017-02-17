@@ -36,9 +36,9 @@ class SubjectWithDatabase extends Subject
      * @param array $routeParameters informations extracted from current request by route matching pattern
      **/
     public function __construct(
-        RequestInterface $httpRequest,
-        ResponseInterface $httpResponse,
-        StreamInterface $httpStream,
+        RequestInterface &$httpRequest,
+        ResponseInterface &$httpResponse,
+        StreamInterface &$httpStream,
         TemplateInterface $template,
         CookieInterface $cookieBuilder,
         QueryBuilderInterface $queryBuilder,
