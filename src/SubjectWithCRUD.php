@@ -341,6 +341,7 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
     protected function execDelete($redirectAction = null)
     {
         $recordId = filter_input_array(INPUT_POST, $this->postedFieldsDefinition)[$this->primaryKey];
+        
         if($recordId){
             try{
                 $this->queryBuilder->table($this->dbTable);
