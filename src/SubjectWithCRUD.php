@@ -242,7 +242,7 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
     }
     
     /**
-     * Inserts record
+     * Insert record action
      * @param array $arguments fields to be extracted from posted values as required from filter_input_array
      * @param string $redirectAction
      */
@@ -256,9 +256,9 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
         $input = $this->processSaveInput(filter_input_array(INPUT_POST, $arguments));
         if($input) {
             $this->queryBuilder->table($this->dbTable);
+            unset($input[$this->primaryKey]);
             try{
-                unset($input[$this->primaryKey]);
-                $recordId = $this->queryBuilder->insert($input);
+                $this->insert($input);
                 $this->message->save('cookies','success',sprintf($this->translations[$this->subject]['insert_success'], $this->translations[$this->subject]['singular']));
             } catch(\PDOException $exception) {
                 $this->handleError($exception);
@@ -272,6 +272,15 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
     
     /**
      * Inserts record
+     * @param array $input
+     */
+    protected function insert($input)
+    {
+        $recordId = $this->queryBuilder->insert($input);
+    }
+    
+    /**
+     * Update record action
      * @param array $arguments fields to be extracted from posted values as required from filter_input_array
      * @param string $redirectAction
      */
@@ -284,12 +293,11 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
         $this->addTranslations('database', sprintf('private/global/locales/%s/database.ini', $this->language));
         $input = $this->processSaveInput(filter_input_array(INPUT_POST, $arguments));
         if($input) {
+            $recordId = $input[$this->primaryKey];
+            unset($input[$this->primaryKey]);
             $this->queryBuilder->table($this->dbTable);
             try{
-                $recordId = $input[$this->primaryKey];
-                unset($input[$this->primaryKey]);
-                $this->queryBuilder->where($this->primaryKey, $recordId);
-                $this->queryBuilder->update($input);
+                $this->update($recordId, $input);
                 $this->message->save('cookies','success',sprintf($this->translations[$this->subject]['update_success'], $this->translations[$this->subject]['singular']));
             } catch(\PDOException $exception) {
                 $this->handleError($exception);
@@ -302,8 +310,23 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
     }
     
     /**
+     * Updates record
+     * @param mixed $recordId
+     * @param array $input
+     */
+    protected function update($recordId, $input)
+    {
+        $recordId = $input[$this->primaryKey];
+        unset($input[$this->primaryKey]);
+        $this->queryBuilder->where($this->primaryKey, $recordId);
+        $this->queryBuilder->update($input);
+        return $recordId;
+    }
+    
+    /**
      * Processes save input before save query, to be overridden by derived class in case of input processing needed
      * @param array $input
+     * @return array $input
      */
     protected function processSaveInput($input)
     {
