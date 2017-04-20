@@ -316,8 +316,6 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
      */
     protected function update($recordId, $input)
     {
-        $recordId = $input[$this->primaryKey];
-        unset($input[$this->primaryKey]);
         $this->queryBuilder->where($this->primaryKey, $recordId);
         $this->queryBuilder->update($input);
         return $recordId;
