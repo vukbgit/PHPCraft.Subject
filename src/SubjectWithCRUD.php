@@ -402,6 +402,6 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
         } catch(\PDOException $exception) {
             $this->handleError($exception);
         }
-        $this->httpResponse = $this->httpResponse->withHeader('Location', '/' . implode('', $this->pathToSubject) . 'list');
+        $this->httpResponse = $this->httpResponse->withHeader('Location', implode('', $this->pathToSubject) . 'list');
     }
 }
