@@ -256,7 +256,7 @@ trait SubjectWithUploadTrait {
     protected function checkUploadOutputsToDelete()
     {
         //get record
-        $recordId = filter_input(INPUT_POST, $this->primaryKey, FILTER_VALIDATE_INT);
+        $recordId = filter_input_array(INPUT_POST, $this->postedFieldsDefinition)[$this->primaryKey];
         $this->queryBuilder->table($this->dbView);
         $this->queryBuilder->where($this->primaryKey,$recordId);
         $record = $this->queryBuilder->get()[0];
