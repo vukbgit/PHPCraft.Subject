@@ -175,30 +175,78 @@ trait SubjectWithUploadTrait {
     }
     
     /**
-     * Riminder to implement execInsertForm
-     * @throws Exception always, unless overridden
-     **/
+     * Displays insert form
+     */
     protected function execInsertForm($updateGlobalAction = array())
     {
-        throw new \Exception(sprintf('%s class must implement execInsertForm() method that calls setUploadFieldsDefinitions and eventually includes private/global/locales/selected-language/form.ini if necessary', $this->subject));
+        $this->addTranslations('form', sprintf('private/global/locales/%s/form.ini', $this->language));
+        $this->setUploadFieldsDefinitions();
+        $this->addUploadFields();
+        parent::execInsertForm();
     }
     
     /**
-     * Riminder to implement execUpdateForm
-     * @throws Exception always, unless overridden
-     **/
+     * Displays update form
+     */
     protected function execUpdateForm($updateGlobalAction = array())
     {
-        throw new \Exception(sprintf('%s class must implement execUpdateForm() method that calls setUploadFieldsDefinitions and eventually includes private/global/locales/selected-language/form.ini if necessary', $this->subject));
+        $this->addTranslations('form', sprintf('private/global/locales/%s/form.ini', $this->language));
+        $this->setUploadFieldsDefinitions();
+        $this->addUploadFields();
+        parent::execUpdateForm();
     }
     
      /**
-     * Riminder to override execUpload
-     * @throws Exception always, unless overridden
-     **/
+     * Execs upload action
+     */
     protected function execUpload()
     {
-        throw new \Exception(sprintf('%s class must implement execUpload()  method that calls setUploadFieldsDefinitions, eventually includes private/global/locales/selected-language/form.ini if necessary and calls handleUpload()', $this->subject));
+        $this->addTranslations('form', sprintf('private/global/locales/%s/form.ini', $this->language));
+        $this->setUploadFieldsDefinitions();
+        $this->addUploadFields();
+        $this->handleUpload();
+        echo $this->outputUploadOutcome();
+    }
+    
+    /**
+     * Processes save input before save query, to be overridden by derived class in case of input processing needed
+     * @param array $input
+     * @return array $input
+     */
+    protected function processSaveInput($input)
+    {
+        $this->addTranslations('form', sprintf('private/global/locales/%s/form.ini', $this->language));
+        $this->setUploadFieldsDefinitions();
+        if($this->action == 'update') {
+            $this->checkUploadOutputsToDelete();
+        }
+        return parent::processSaveInput($input);
+    }
+    
+    /**
+     * Displays delete form
+     */
+    protected function execDeleteForm()
+    {
+        $globalAction = [
+            'url' => false,
+            'action' => 'deleteForm',
+            'label' => $this->translations[$this->area]['operations']['do_delete'] . ' ' . $this->translations[$this->subject]['singular']
+        ];
+        $this->setGlobalAction($globalAction);
+        parent::execDeleteForm();
+    }
+    
+    /**
+     * deletes record
+     * @param string $redirectAction
+     */
+    protected function execDelete($redirectAction = null)
+    {
+        $this->addTranslations('form', sprintf('private/global/locales/%s/form.ini', $this->language));
+        $this->setUploadFieldsDefinitions();
+        $this->checkUploadOutputsToDelete();
+        parent::execDelete();
     }
     
     /**
@@ -236,6 +284,67 @@ trait SubjectWithUploadTrait {
                     }
                 }
             }
+        }
+    }
+    
+    /**
+     * extracts from a record field, for one upload field, one output paths
+     * @param object $record
+     * @param string $field
+     * @param array $outputs
+     */
+    protected function extractFieldOutputs(&$record, $field, $outputs)
+    {
+        if(isset($record->{$field}) && $record->{$field} && $record->{$field} != '[]' && $record->{$field} != '{}') {
+            //init files container
+            if(!isset($record->files)) {
+                $record->files = new \stdclass;
+            }
+            //init fields container
+            if(!isset($record->files->{$field})) {
+                $record->files->{$field} = array();
+            }
+            //decode image objects
+            $imageObjects = json_decode($record->{$field});
+            //loop saved images
+            foreach($imageObjects as $imageObject) {
+                //output container for current saved file
+                $outputsFiles = new \stdClass;
+                //loop outputs to extract
+                foreach($outputs as $output) {
+                    //check if output is saved
+                    if(isset($imageObject->outputs->{$output})) {
+                        //store output path
+                        $outputsFiles->{$output} = $imageObject->outputs->{$output}->path;
+                    }
+                }
+                //store extracted outputs paths
+                $record->files->{$field}[] = $outputsFiles;
+            }
+        }
+    }
+    
+    /**
+     * extracts for a record, for one or more upload fields, one or more outputs paths
+     * @param object $record
+     * @param array $fieldsOutputs: indexes are fields names, elements are outputs names
+     */
+    protected function extractFieldsOutputs(&$record, $fieldsOutputs)
+    {
+        foreach($fieldsOutputs as $field => $outputs) {
+            $this->extractFieldOutputs($record, $field, $outputs);
+        }
+    }
+    
+    /**
+     * extracts for a list of records, for one or more upload fields, one or more outputs paths
+     * @param object $record
+     * @param array $fieldsOutputs: indexes are fields names, elements are outputs names
+     */
+    protected function extractFieldsOutputsList(&$records, $fieldsOutputs)
+    {
+        foreach($records as $record) {
+            $this->extractFieldsOutputs($record, $fieldsOutputs);
         }
     }
 }
