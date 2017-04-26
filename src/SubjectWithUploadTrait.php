@@ -329,7 +329,7 @@ trait SubjectWithUploadTrait {
      * @param object $record
      * @param array $fieldsOutputs: indexes are fields names, elements are outputs names
      */
-    protected function extractFieldsOutputs(&$record, $fieldsOutputs)
+    public function extractFieldsOutputs(&$record, $fieldsOutputs)
     {
         foreach($fieldsOutputs as $field => $outputs) {
             $this->extractFieldOutputs($record, $field, $outputs);
@@ -341,7 +341,7 @@ trait SubjectWithUploadTrait {
      * @param object $record
      * @param array $fieldsOutputs: indexes are fields names, elements are outputs names
      */
-    protected function extractFieldsOutputsList(&$records, $fieldsOutputs)
+    public function extractFieldsOutputsList(&$records, $fieldsOutputs)
     {
         foreach($records as $record) {
             $this->extractFieldsOutputs($record, $fieldsOutputs);
