@@ -293,7 +293,7 @@ trait SubjectWithUploadTrait {
      * @param string $field
      * @param array $outputs
      */
-    protected function extractFieldOutputs(&$record, $field, $outputs)
+    public function extractFieldOutputs(&$record, $field, $outputs)
     {
         if(isset($record->{$field}) && $record->{$field} && $record->{$field} != '[]' && $record->{$field} != '{}') {
             //init files container
