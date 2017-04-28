@@ -101,11 +101,40 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
     }
     
     /**
+     * gets records
+     * @param array $where conditions in the form field => value
+     * @param array $order order in the form field => direction (ASC | DESC)
+     */
+    public function get($where = array(), $order = array())
+    {
+        $this->queryBuilder->table($this->dbView);
+        //where
+        foreach($where as $field => $value) {
+            $this->queryBuilder->where($field, $value);
+        }
+        //order
+        foreach($order as $field => $direction) {
+            $this->queryBuilder->orderBy($field, $direction);
+        }
+        $records = $this->queryBuilder->get();
+        return $records;
+    }
+    
+    /**
      * gets list for the table
      *
      * @param array $fields to be selected
      */
-    abstract protected function getList($fields = array());
+    //abstract protected function getList($fields = array());
+    /**
+     * gets list for the table
+     *
+     * @param array $fields to be selected
+     */
+    protected function getList($fields = array())
+    {
+        return $this->get(array(), array($this->primaryKey => 'ASC'));
+    }
     
     /**
      * Displays list table
