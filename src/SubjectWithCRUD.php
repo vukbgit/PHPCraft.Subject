@@ -302,7 +302,7 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
      * Inserts record
      * @param array $input
      */
-    protected function insert($input)
+    public function insert($input)
     {
         $this->queryBuilder->table($this->dbTable);
         $recordId = $this->queryBuilder->insert($input);
@@ -342,7 +342,7 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
      * @param mixed $recordId
      * @param array $input
      */
-    protected function update($recordId, $input)
+    public function update($recordId, $input)
     {
         $this->queryBuilder->table($this->dbTable)
             ->where($this->primaryKey, $recordId)
