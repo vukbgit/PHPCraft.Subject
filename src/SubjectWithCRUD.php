@@ -284,7 +284,6 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
         $this->addTranslations('database', sprintf('private/global/locales/%s/database.ini', $this->language));
         $input = $this->processSaveInput(filter_input_array(INPUT_POST, $arguments));
         if($input) {
-            $this->queryBuilder->table($this->dbTable);
             unset($input[$this->primaryKey]);
             try{
                 $this->insert($input);
@@ -305,6 +304,7 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
      */
     protected function insert($input)
     {
+        $this->queryBuilder->table($this->dbTable);
         $recordId = $this->queryBuilder->insert($input);
     }
     
@@ -324,7 +324,6 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
         if($input) {
             $recordId = $input[$this->primaryKey];
             unset($input[$this->primaryKey]);
-            $this->queryBuilder->table($this->dbTable);
             try{
                 $this->update($recordId, $input);
                 $this->message->save('cookies','success',sprintf($this->translations[$this->subject]['update_success'], $this->translations[$this->subject]['singular']));
@@ -345,8 +344,9 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
      */
     protected function update($recordId, $input)
     {
-        $this->queryBuilder->where($this->primaryKey, $recordId);
-        $this->queryBuilder->update($input);
+        $this->queryBuilder->table($this->dbTable)
+            ->where($this->primaryKey, $recordId)
+            ->update($input);
         return $recordId;
     }
     
