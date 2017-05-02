@@ -301,11 +301,12 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
     /**
      * Inserts record
      * @param array $fieldsValues
+     * @return mixed $recordId id o new record (if query builder insert operation returns it)
      */
     public function insert($fieldsValues)
     {
         $this->queryBuilder->table($this->dbTable);
-        $recordId = $this->queryBuilder->insert($fieldsValues);
+        return $this->queryBuilder->insert($fieldsValues);
     }
     
     /**
