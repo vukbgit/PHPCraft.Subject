@@ -257,7 +257,7 @@ trait SubjectWithUploadTrait {
     {
         //get record
         $recordId = filter_input_array(INPUT_POST, $this->postedFieldsDefinition)[$this->primaryKey];
-        $this->queryBuilder->table($this->dbView);
+        $this->queryBuilder->table($this->dbView());
         $this->queryBuilder->where($this->primaryKey,$recordId);
         $record = $this->queryBuilder->get()[0];
         $fields = array_keys($this->uploadFieldsDefinitions);

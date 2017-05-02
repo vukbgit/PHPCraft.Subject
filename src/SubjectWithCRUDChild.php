@@ -40,7 +40,7 @@ abstract class SubjectWithCRUDChild extends SubjectWithCRUD
     private function getParent()
     {
         if(isset($this->routeParameters['parentId'])) {
-            $this->templateParameters['parent'] = $this->queryBuilder->table($this->parentSubject->dbView)->where($this->parentSubject->primaryKey, $this->routeParameters['parentId'])->get()[0];
+            $this->templateParameters['parent'] = $this->queryBuilder->table($this->parentSubject->dbView())->where($this->parentSubject->primaryKey, $this->routeParameters['parentId'])->get()[0];
         }
     }
     
@@ -51,7 +51,7 @@ abstract class SubjectWithCRUDChild extends SubjectWithCRUD
      */
     protected function getList($fields = array())
     {
-        $this->queryBuilder->table($this->dbView);
+        $this->queryBuilder->table($this->dbView());
         if(isset($this->templateParameters['parent'])) {
             $this->queryBuilder->where($this->parentSubject->primaryKey, $this->templateParameters['parent']->{$this->parentSubject->primaryKey});
         }

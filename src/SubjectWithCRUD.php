@@ -25,6 +25,7 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
     const PERMANENT_COOKIES_LIFE = 157680000;
     protected $message;
     protected $csv;
+    protected $schema;
     protected $dbTable;
     protected $dbView;
     protected $primaryKey;
@@ -89,6 +90,45 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
     }
     
     /**
+     * sets schema
+     * @param string $schema
+     **/
+    public function setSchema($schema)
+    {
+        $this->schema = $schema;
+    }
+    
+    /**
+     * returns table name with eventual schema
+     * @return string
+     **/
+    public function dbTable()
+    {
+        return $this->addSchema()
+             . $this->dbTable;
+    }
+    
+    /**
+     * returns view name with eventual schema
+     * @return string
+     **/
+    public function dbView()
+    {
+        return $this->addSchema()
+             . $this->dbView;
+    }
+    
+    /**
+     * adds schema
+     **/
+    public function addSchema()
+    {
+        if($this->schema) {
+            return $this->schema . '.';
+        }
+    }
+    
+    /**
      * Tries to exec current action
      *
      * @throws Exception if there is no method defined to handle action
@@ -107,7 +147,7 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
      */
     public function get($where = array(), $order = array())
     {
-        $this->queryBuilder->table($this->dbView);
+        $this->queryBuilder->table($this->dbView());
         //where
         foreach($where as $field => $value) {
             $this->queryBuilder->where($field, $value);
@@ -262,7 +302,7 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
         // get record id
         $recordId = isset($this->routeParameters['key']) ? $this->routeParameters['key'] : false;
         // build query
-        $this->queryBuilder->table($this->dbView);
+        $this->queryBuilder->table($this->dbView());
         $this->queryBuilder->where($this->primaryKey,$recordId);
         $this->templateParameters['record'] = $this->queryBuilder->get()[0];
         if($updateGlobalAction) $this->setGlobalAction($updateGlobalAction);
@@ -305,7 +345,7 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
      */
     public function insert($fieldsValues)
     {
-        $this->queryBuilder->table($this->dbTable);
+        $this->queryBuilder->table($this->dbTable());
         return $this->queryBuilder->insert($fieldsValues);
     }
     
@@ -345,7 +385,7 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
      */
     public function update($recordId, $fieldsValues)
     {
-        $this->queryBuilder->table($this->dbTable)
+        $this->queryBuilder->table($this->dbTable())
             ->where($this->primaryKey, $recordId)
             ->update($fieldsValues);
         return $recordId;
@@ -376,7 +416,7 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
         );
         $recordId = isset($this->routeParameters['key']) ? $this->routeParameters['key'] : false;
         if($recordId) {
-            $this->queryBuilder->table($this->dbView);
+            $this->queryBuilder->table($this->dbView());
             $this->queryBuilder->where($this->primaryKey,$recordId);
             $this->templateParameters['record'] = $this->queryBuilder->get()[0];
         }
@@ -414,7 +454,7 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
     public function delete($fieldsValues)
     {
         $this->queryBuilder
-            ->table($this->dbTable)
+            ->table($this->dbTable())
             ->delete($fieldsValues);
     }
     
@@ -436,7 +476,7 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
     {
         try{
             $ids = explode('|',$this->routeParameters['key']);
-            $this->queryBuilder->table($this->dbTable)
+            $this->queryBuilder->table($this->dbTable())
             ->where($this->primaryKey, 'in', $ids)->delete();
             $this->message->save('cookies','success',sprintf($this->translations[$this->subject]['delete_bulk_success'], count($ids), $this->translations[$this->subject]['plural']));
         } catch(\PDOException $exception) {
