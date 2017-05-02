@@ -300,12 +300,12 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
     
     /**
      * Inserts record
-     * @param array $input
+     * @param array $fieldsValues
      */
-    public function insert($input)
+    public function insert($fieldsValues)
     {
         $this->queryBuilder->table($this->dbTable);
-        $recordId = $this->queryBuilder->insert($input);
+        $recordId = $this->queryBuilder->insert($fieldsValues);
     }
     
     /**
@@ -340,13 +340,13 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
     /**
      * Updates record
      * @param mixed $recordId
-     * @param array $input
+     * @param array $fieldsValues
      */
-    public function update($recordId, $input)
+    public function update($recordId, $fieldsValues)
     {
         $this->queryBuilder->table($this->dbTable)
             ->where($this->primaryKey, $recordId)
-            ->update($input);
+            ->update($fieldsValues);
         return $recordId;
     }
     
@@ -395,8 +395,7 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
         $recordId = filter_input_array(INPUT_POST, $this->postedFieldsDefinition)[$this->primaryKey];
         if($recordId){
             try{
-                $this->queryBuilder->table($this->dbTable);
-                $this->queryBuilder->delete([$this->primaryKey => $recordId]);
+                $this->delete([$this->primaryKey => $recordId]);
                 $this->message->save('cookies','success',sprintf($this->translations[$this->subject]['delete_success'], $this->translations[$this->subject]['singular']));
             } catch(\PDOException $exception) {
                 $this->handleError($exception);
@@ -405,6 +404,17 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
         //redirect
         $redirectAction = $redirectAction ? $redirectAction : 'list';
         $this->httpResponse = $this->httpResponse->withHeader('Location', $redirectAction);
+    }
+    
+    /**
+     * Deletes record
+     * @param array $fieldsValues
+     */
+    public function delete($fieldsValues)
+    {
+        $this->queryBuilder
+            ->table($this->dbTable)
+            ->delete($fieldsValues);
     }
     
     /**
