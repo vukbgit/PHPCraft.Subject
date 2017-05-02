@@ -453,9 +453,8 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
      */
     public function delete($fieldsValues)
     {
-        $this->queryBuilder
-            ->table($this->dbTable())
-            ->delete($fieldsValues);
+        $this->queryBuilder->table($this->dbTable());
+        $this->queryBuilder->delete($fieldsValues);
     }
     
     /**
