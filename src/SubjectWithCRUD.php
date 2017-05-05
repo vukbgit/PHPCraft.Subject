@@ -473,6 +473,7 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
      */
     protected function execDeleteBulk()
     {
+        $this->addTranslations('database', sprintf('private/global/locales/%s/database.ini', $this->language));
         try{
             $ids = explode('|',$this->routeParameters['key']);
             $this->queryBuilder->table($this->dbTable())
