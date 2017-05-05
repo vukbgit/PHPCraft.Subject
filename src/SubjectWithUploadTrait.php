@@ -263,6 +263,10 @@ trait SubjectWithUploadTrait {
         $fields = array_keys($this->uploadFieldsDefinitions);
         //loop defined upload fields
         foreach($fields as $field) {
+            //skip other subject field (in case this subject handles upload for other tables)
+            if(!isset($record->$field)) {
+                continue;
+            }
             //get record field value
             $fieldValue = json_decode($record->$field);
             //skip empty field
