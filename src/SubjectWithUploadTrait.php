@@ -115,6 +115,9 @@ trait SubjectWithUploadTrait {
         }
         //exec upload
         $this->uploadOk = $this->uploadFields[$this->uploadedField]->handleUpload($this->uploader);
+        if(!$this->uploadOk) {
+            return;
+        }
         //outputs post processing
         $outputs = $this->uploadFields[$this->uploadedField]->getOutputsFiles();
         foreach($this->uploadFieldsDefinitions[$this->uploadedField]['outputs'] as $output => $outputDefinition) {
