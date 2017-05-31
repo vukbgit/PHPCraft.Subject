@@ -9,104 +9,75 @@ namespace PHPCraft\Subject;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamInterface;
-use PHPCraft\Template\TemplateInterface;
-use PHPCraft\Cookie\CookieInterface;
 
 class Subject
 {
+    /**
+    * subject name
+    **/
+    protected $subject;
+    /**
+    * HTTP objects
+    **/
     protected $httpRequest;
     protected $httpResponse;
     protected $httpStream;
-    protected $template;
-    protected $cookie;
-    protected $application;
-    protected $area;
-    protected $subject;
-    protected $action;
-    protected $routeParameters;
-    protected $templateParameters;
+    /**
+    * called route
+    **/
+    protected $route;
+    /**
+    * loaded configuration
+    **/
+    protected $configuration;
+    /**
+    * loaded translations
+    **/
     protected $translations;
-    protected $areaAuthentication = false;
-    protected $pathToSubject;
-
+    /**
+    * Action can be set:
+    *   - as route['parameters']['action'] element
+    *   - as route['properties']['action'] element
+    *   - by calling setAction method
+    **/
+    protected $action = false;
+    
     /**
      * Constructor.
+     * @param string $subject
      * @param Psr\Http\Message\RequestInterface $httpRequest HTTP request handler instance
      * @param Psr\Http\Message\ResponseInterface $httpResponse HTTP response handler instance
      * @param Psr\Http\Message\StreamInterface $httpStream HTTP stream handler instance
-     * @param PHPCraft\Template\TemplateInterface $template template renderer instance
-     * @param PHPCraft\Cookie\CookieInterface $cookie, instance
-     * @param string $application current PHPCraft application
-     * @param string $area current PHPCraft area
-     * @param string $subject current PHPCraft subject
-     * @param string $action current PHPCraft action
-     * @param string $language current PHPCraft language code
-     * @param array $routeParameters informations extracted from current request by route matching pattern
+     * @param array $configuration
+     * @param array $route route array with static properties ad URL extracted parameters
      **/
     public function __construct(
+        $subject,
         RequestInterface &$httpRequest,
         ResponseInterface &$httpResponse,
         StreamInterface &$httpStream,
-        TemplateInterface $template,
-        CookieInterface $cookie,
-        $application,
-        $area,
-        $subject,
-        $action,
-        $language,
-        $routeParameters = array()
+        $configuration = array(),
+        $route = array()
     ) {
-        $this->httpRequest = &$httpRequest;
-        $this->httpResponse = &$httpResponse;
-        $this->httpStream =& $httpStream;
-        $this->template = $template;
-        $this->cookie = $cookie;
-        $this->application = $application;
-        $this->area = $area;
         $this->subject = $subject;
-        $this->action = $action;
-        $this->language = $language;
-        $this->routeParameters = $routeParameters;
-        $this->templateParameters = array(
-            'application' => $this->application,
-            'area' => $this->area,
-            'subject' => $this->subject,
-            'action' => $this->action,
-            'requestedUri' => $httpRequest->getUri(),
-            'language' => $this->language
-        );
-        $this->translations = array();
+        $this->configuration = $configuration;
+        $this->route = $route;
+        $this->autoExtractAction();
     }
     
     /**
-     * turns action from slug-like form (with -) to method name (camelcase)
-     * @param string $action
+     * Utilized when reading data from inaccessible properties
+     * @param string $propertyName
+     * @throws Exception if property is not related to a used trait ('has' prefix) end it's not set
      **/
-    public function sanitizeAction($action){
-        return preg_replace_callback(
-            '/[-_](.)/',
-            function($matches) {
-                return strtoupper($matches[1]);
-            },
-            $action
-        );
-    }
-    
-    /**
-     * stores the path to current subject
-     * @param string $applicationBasePath
-     * @param string $areaBasePath
-     * @param string $subjectBasePath
-     * @param boolean $excludeLanguage
-     **/
-    public function setPathToSubject($applicationBasePath, $areaBasePath, $subjectBasePath, $excludeLanguage = true){
-        if(!$excludeLanguage) {
-            $this->pathToSubject['language'] = $this->language;
+    public function __get($propertyName)
+    {
+        //check if property regards a used trait
+        if(substr($propertyName, 0, 3) === 'has') {
+            return isset($this->$propertyName) && $this->$propertyName === true;
+        } else {
+            throw new \Exception(sprintf('Undefined property %s', $propertyName));
         }
-        $this->pathToSubject['application'] = $applicationBasePath;
-        $this->pathToSubject['area'] = $areaBasePath;
-        $this->pathToSubject['subject'] = $subjectBasePath;
-        $this->templateParameters['pathToSubject'] = $this->pathToSubject;
     }
     
     /**
@@ -126,97 +97,65 @@ class Subject
     }
     
     /**
-     * adds an application level translations with the assumption that is sotred into private/application-name/current-language
+     * adds an application level translations with the assumption that is stored into private/application-name/current-language
      * @param string $key key of translations array to store file content into
-     * @param string $pathToIniFile file path into private/application-name/curent-language/
+     * @param string $pathToIniFile file path inside private/application-name/curent-language/
      * @throws InvalidArgumentException if file is not found
      **/
     public function addApplicationTranslations($key, $pathToIniFile)
     {
-        $path = sprintf('private/%s/locales/%s/%s', $this->application, $this->language, $pathToIniFile);
+        $path = sprintf('private/%s/locales/%s/%s', APPLICATION, LANGUAGE, $pathToIniFile);
         $this->addTranslations($key, $path);
     }
     
     /**
+     * sets action
+     * @param string $action
+     **/
+    public function setAction($action){
+        $this->action = $action;
+    }
+    
+    /**
+     * searches fpor action value into route
+     **/
+    public function autoExtractAction(){
+        if(isset($this->route['parameters']['action'])) {
+            $this->action = $this->route['parameters']['action'];
+        } else if(isset($this->route['properties']['action'])) {
+            $this->action = $this->route['properties']['action'];
+        }
+    }
+    
+    /**
+     * turns action from slug-like form (with -) to method name (camelcase)
+     * @param string $action
+     **/
+    public function sanitizeAction($action){
+        return ucfirst(preg_replace_callback(
+            '/[-_](.)/',
+            function($matches) {
+                return strtoupper($matches[1]);
+            },
+            $action
+        ));
+    }
+    
+    /**
      * tries to exec current action
-     * @throws Exception if there is no method defined to handle action
+     * @throws Exception if there is no action or method defined
      **/
     public function execAction()
     {
+        //no action defined
+        if(!$this->action) {
+            throw new \Exception(sprintf('no action defined for subject %s', $this->subject));
+        }
         try {
-            $this->templateParameters['area'] = $this->area;
-            $this->templateParameters['areaAuthentication'] = $this->areaAuthentication;
-            $this->getBackPaths();
-            $this->{'exec'.ucfirst($this->sanitizeAction($this->action))}();
+            $this->{'exec'.$this->sanitizeAction($this->action)}();
         } catch(Exception $exception) {
-            throw new Exception(sprintf('no method for handling %s %s %s', $this->area, $this->subject, $this->action));
+        //no method defined
+            throw new Exception(sprintf('no method for handling %s %s %s', AREA, $this->subject, $this->action));
         }
-    }
-    
-    /**
-     * Stores a path to turn back lately
-     **/
-    public function execBackPath()
-    {
-        $arguments = array(
-            'backId' => FILTER_SANITIZE_STRING,
-            'backPath' =>  array(
-                        'filter' => FILTER_SANITIZE_URL,
-                        'flags' => FILTER_FLAG_PATH_REQUIRED
-                    ),
-            'backLabel' => FILTER_SANITIZE_STRING,
-        );
-        $input = filter_input_array(INPUT_POST, $arguments);
-        $this->cookie->set('backPaths[' . $input['backId'] . '][path]', $input['backPath']);
-        $this->cookie->set('backPaths[' . $input['backId'] . '][label]', $input['backLabel']);
-    }
-    
-    /**
-     * Gets Stored paths to turn back lately
-     **/
-    protected function getBackPaths()
-    {
-        $backPaths = $this->cookie->get('backPaths');
-        foreach((array) $backPaths as $backId => $backpath) {
-            if($backpath['path'] == $this->httpRequest->getUri()) {
-                $this->cookie->delete('backPaths[' . $backId . '][path]');
-                $this->cookie->delete('backPaths[' . $backId . '][label]');
-                unset($backPaths[$backId]);
-            }
-        }
-        $this->templateParameters['backPaths'] = $backPaths;
-    }
-    
-    /**
-     * Sets user authentication for current area
-     * @param boolean $authenticated;
-     **/
-    public function setAreaAuthentication($authenticated)
-    {
-        $this->areaAuthentication = $authenticated;
-    }
-    
-    /**
-     * Sets a template parameter
-     * @param string $key;
-     * @param mixed $value;
-     **/
-    public function setTemplateParameter($key, $value)
-    {
-        $this->templateParameters[$key] = $value;
-    }
-    
-    /**
-     * Renders action template
-     * @param string $path;
-     **/
-    protected function renderTemplate($path = false)
-    {
-        if(!$path) {
-            $path = sprintf('%s/%s/%s', $this->area, $this->subject, $this->action);
-        }
-        $this->templateParameters['translations'] = $this->translations;
-        $html = $this->template->render($path, $this->templateParameters);
-        $this->httpStream->write($html);
     }
 }
