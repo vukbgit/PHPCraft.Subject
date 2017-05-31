@@ -16,24 +16,29 @@ class Subject
     * subject name
     **/
     protected $subject;
+    
     /**
     * HTTP objects
     **/
     protected $httpRequest;
     protected $httpResponse;
     protected $httpStream;
+    
     /**
     * called route
     **/
     protected $route;
+    
     /**
     * loaded configuration
     **/
     protected $configuration;
+    
     /**
     * loaded translations
     **/
     protected $translations;
+    
     /**
     * Action can be set:
     *   - as route['parameters']['action'] element
@@ -60,7 +65,10 @@ class Subject
         $route = array()
     ) {
         $this->subject = $subject;
-        $this->configuration = $configuration;
+        $this->httpRequest = $httpRequest;
+        $this->httpResponse = $httpResponse;
+        $this->httpStream = $httpStream;
+        $this->processConfiguration($configuration);
         $this->route = $route;
         $this->autoExtractAction();
     }
@@ -81,6 +89,34 @@ class Subject
     }
     
     /**
+     * Processes configuration, checks for mandatory parameters, extracts found parameters
+     * @param array $configuration
+     **/
+    protected function processConfiguration($configuration)
+    {
+        //database
+        if($this->hasDatabase) {
+            //check parameters
+            if(!isset($configuration['database'])) {
+                throw new \Exception('missing database parameters into configuration');
+            } else {
+                $this->setDBParameters($configuration['database']['driver'], $configuration['database']['host'], $configuration['database']['username'], $configuration['database']['password'], $configuration['database']['database'], $configuration['database']['schema']);
+            }
+        }
+        //ORM
+        if($this->hasORM) {
+            //check parameters
+            if(!isset($configuration['ORM'])) {
+                throw new \Exception('missing ORM parameters into configuration');
+            } else {
+                $this->setORMParameters($configuration['ORM']['table'], $configuration['ORM']['view'], $configuration['ORM']['primaryKey']);
+            }
+        }
+        //store
+        $this->configuration = $configuration;
+    }
+    
+    /**
      * adds a translations ini file content to subject translations
      * @param string $key key of translations array to store file content into
      * @param string $pathToIniFile file path from application root
@@ -90,7 +126,7 @@ class Subject
     {
         $path = $pathToIniFile;
         if(!is_file($path)) {
-            throw new \InvalidArgumentException("Path to " . $path . " is not valid");
+            throw new \InvalidArgumentException(sprintf("Translation file not found into path %s", $path));
         } else {
             $this->translations[$key] = parse_ini_file($path,true);
         }
