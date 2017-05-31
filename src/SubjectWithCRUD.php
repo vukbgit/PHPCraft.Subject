@@ -475,7 +475,7 @@ abstract class SubjectWithCRUD extends SubjectWithDatabase
     {
         $this->addTranslations('database', sprintf('private/global/locales/%s/database.ini', $this->language));
         try{
-            $ids = explode('|',$this->routeParameters['key']);
+            $ids = explode('|',urldecode($this->routeParameters['key']));
             $this->queryBuilder->table($this->dbTable())
             ->where($this->primaryKey, 'in', $ids)->delete();
             $this->message->save('cookies','success',sprintf($this->translations[$this->subject]['delete_bulk_success'], count($ids), $this->translations[$this->subject]['plural']));
