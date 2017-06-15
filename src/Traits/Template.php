@@ -40,6 +40,26 @@ trait Template{
     }
     
     /**
+     * Sets common template parameters
+     **/
+    private function setCommonTemplateParameters()
+    {
+        $this->setTemplateParameter('application', APPLICATION);
+        $this->setTemplateParameter('area', AREA);
+        $this->setTemplateParameter('subject', $this->subject);
+        $this->templateParameters['translations'] = $this->translations;
+    }
+    
+    /**
+     * Sets page title to be displayed into title HTML tag before 
+     * @param string $title;
+     **/
+    public function setPageTitle($title)
+    {
+        $this->setTemplateParameter('pageTitle', $title);
+    }
+    
+    /**
      * Renders template
      * @param string $path;
      **/
@@ -51,7 +71,7 @@ trait Template{
         if(!$path) {
             $path = sprintf('%s/%s/%s', AREA, $this->subject, $this->action);
         }
-        $this->templateParameters['translations'] = $this->translations;
+        $this->setCommonTemplateParameters();
         $html = $this->templateEngine->render($path, $this->templateParameters);
         $this->httpStream->write($html);
     }
