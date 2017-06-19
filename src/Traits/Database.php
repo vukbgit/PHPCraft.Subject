@@ -85,7 +85,7 @@ trait Database{
      **/
     public function schema()
     {
-        if(isset($this->DBParameters['schema'])) {
+        if(isset($this->DBParameters['schema']) && $this->DBParameters['schema']) {
             return $this->DBParameters['schema'] . '.';
         }
     }

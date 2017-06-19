@@ -46,7 +46,7 @@ trait Template{
     {
         $this->setTemplateParameter('application', APPLICATION);
         $this->setTemplateParameter('area', AREA);
-        $this->setTemplateParameter('subject', $this->subject);
+        $this->setTemplateParameter('subject', $this->name);
         $this->templateParameters['translations'] = $this->translations;
     }
     
@@ -69,7 +69,7 @@ trait Template{
             throw new \Exception('template engine not injected');
         }
         if(!$path) {
-            $path = sprintf('%s/%s/%s', AREA, $this->subject, $this->action);
+            $path = sprintf('%s/%s/%s', AREA, $this->name, $this->action);
         }
         $this->setCommonTemplateParameters();
         $html = $this->templateEngine->render($path, $this->templateParameters);

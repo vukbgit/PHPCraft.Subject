@@ -10,12 +10,12 @@ use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamInterface;
 
-class Subject
+abstract class Subject
 {
     /**
     * subject name
     **/
-    protected $subject;
+    protected $name;
     
     /**
     * HTTP objects
@@ -49,28 +49,41 @@ class Subject
     
     /**
      * Constructor.
-     * @param string $subject
-     * @param Psr\Http\Message\RequestInterface $httpRequest HTTP request handler instance
-     * @param Psr\Http\Message\ResponseInterface $httpResponse HTTP response handler instance
-     * @param Psr\Http\Message\StreamInterface $httpStream HTTP stream handler instance
-     * @param array $configuration
+     * @param string $name of the subject
+     * @param object $http objects container
+     *          ->request Psr\Http\Message\RequestInterface HTTP request handler instance
+     *          ->response Psr\Http\Message\ResponseInterface HTTP response handler instance
+     *          ->stream Psr\Http\Message\StreamInterface HTTP stream handler instance
+     * @param array $configuration global configuration array, with application, areas and subject(s) elements
      * @param array $route route array with static properties ad URL extracted parameters
      **/
-    public function __construct(
-        $subject,
-        RequestInterface &$httpRequest,
-        ResponseInterface &$httpResponse,
-        StreamInterface &$httpStream,
-        $configuration = array(),
+    protected function __construct(
+        $name,
+        &$http,
+        &$configuration = array(),
         $route = array()
     ) {
-        $this->subject = $subject;
-        $this->httpRequest = $httpRequest;
-        $this->httpResponse = $httpResponse;
-        $this->httpStream = $httpStream;
+        $this->name = $name;
+        $this->httpRequest =& $http->request;
+        $this->httpResponse =& $http->response;
+        $this->httpStream =& $http->stream;
         $this->processConfiguration($configuration);
         $this->route = $route;
         $this->autoExtractAction();
+    }
+    
+    public static function factory($subjectName, &$http, &$configuration = array(), $route = array())
+    {
+        $subjectNameClass = sprintf('%s\%s', APPLICATION_NAMESPACE, str_replace('-', '', ucwords($subjectName, '-')));
+        //load subject configuration
+        $configuration['subjects'][$subjectName] = require sprintf('private/%s/configurations/%s.php', APPLICATION, $subjectName);
+        //instance subject
+        return new $subjectNameClass(
+            $subjectName,
+            $http,
+            $configuration,
+            $route
+        );
     }
     
     /**
@@ -106,10 +119,16 @@ class Subject
         //ORM
         if($this->hasORM) {
             //check parameters
-            if(!isset($configuration['ORM'])) {
-                throw new \Exception('missing ORM parameters into configuration');
+            if(!isset($configuration['subjects'][$this->name]['ORM'])) {
+                throw new \Exception(sprintf('missing ORM parameters into %s subject configuration', $this->name));
             } else {
-                $this->setORMParameters($configuration['ORM']['table'], $configuration['ORM']['view'], $configuration['ORM']['primaryKey']);
+                $parameters = ['table', 'view', 'primaryKey'];
+                foreach($parameters as $parameter) {
+                    if(!isset($configuration['subjects'][$this->name]['ORM'][$parameter]) || !$configuration['subjects'][$this->name]['ORM'][$parameter]) {
+                        throw new \Exception(sprintf('missing %s ORM parameters into %s subject configuration', $parameter, $this->name));
+                    }
+                }
+                $this->setORMParameters($configuration['subjects'][$this->name]['ORM']['table'], $configuration['subjects'][$this->name]['ORM']['view'], $configuration['subjects'][$this->name]['ORM']['primaryKey']);
             }
         }
         //store
@@ -185,13 +204,13 @@ class Subject
     {
         //no action defined
         if(!$this->action) {
-            throw new \Exception(sprintf('no action defined for subject %s', $this->subject));
+            throw new \Exception(sprintf('no action defined for subject %s', $this->name));
         }
         try {
             $this->{'exec'.$this->sanitizeAction($this->action)}();
         } catch(Exception $exception) {
         //no method defined
-            throw new Exception(sprintf('no method for handling %s %s %s', AREA, $this->subject, $this->action));
+            throw new Exception(sprintf('no method for handling %s %s %s', AREA, $this->name, $this->action));
         }
     }
 }
