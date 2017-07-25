@@ -1,4 +1,15 @@
 <?php
+/**
+ * database trait for a PHPCraft subject
+ * traits optional automatic called methods:
+ *      setTraitDependencies[trait-name](): calls $this->setTraitDependencies
+ *      setTraitInjections[trait-name](): calls $this->setTraitInjections
+ *      processRouteTrait[trait-name](): processes route
+ *      processConfigurationTrait[trait-name](): processes configuration
+ *      initTrait[trait-name](): performs any task needed by trait BEFORE subject action is performed
+ * @author vuk <http://vuk.bg.it>
+ */
+ 
 namespace PHPCraft\Subject\Traits;
 use PHPCraft\Database\QueryBuilderInterface;
 
@@ -19,6 +30,26 @@ trait Database{
     **/
     protected $DBParameters;
     
+    /**
+     * Sets trait needed injections
+     **/
+    protected function setTraitInjectionsDatabase()
+    {
+        $this->setTraitInjections('Database', ['queryBuilder']);
+    }
+
+    /**
+     * Processes configuration
+     * @param array $configuration
+     **/
+    protected function processConfigurationTraitDatabase(&$configuration)
+    {
+        if(!isset($configuration['database'])) {
+            throw new \Exception('missing database parameters into configuration');
+        } else {
+            $this->setDBParameters($configuration['database']['driver'], $configuration['database']['host'], $configuration['database']['username'], $configuration['database']['password'], $configuration['database']['database'], $configuration['database']['schema']);
+        }
+    }
     
     /**
      * Injects query builder instance
@@ -98,5 +129,20 @@ trait Database{
         foreach($where as $field => $value) {
             $this->queryBuilder->where($field, $value);
         }
+    }
+    
+    /**
+     * Handles a database error
+     * @param Exception $exception
+     * @retun string $message
+     **/
+    protected function handleError($exception){
+        $error = $this->queryBuilder->handleQueryException($exception);
+        if($error[0] && isset($this->translations[$this->name][$error[0].'_'.$error[1]])) {
+            $message = $this->translations[$this->name][$error[0].'_'.$error[1]];
+        } else {
+            $message = sprintf($this->translations['database']['query_error'],$error[0], $error[1]);
+        }
+        return $message;
     }
 }

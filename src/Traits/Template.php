@@ -1,4 +1,15 @@
 <?php
+/**
+ * template trait for a PHPCraft subject
+ * traits optional automatic called methods:
+ *      setTraitDependencies[trait-name](): calls $this->setTraitDependencies
+ *      setTraitInjections[trait-name](): calls $this->setTraitInjections
+ *      processRouteTrait[trait-name](): processes route
+ *      processConfigurationTrait[trait-name](): processes configuration
+ *      initTrait[trait-name](): performs any task needed by trait BEFORE subject action is performed
+ * @author vuk <http://vuk.bg.it>
+ */
+ 
 namespace PHPCraft\Subject\Traits;
 
 use PHPCraft\Template\TemplateInterface;
@@ -21,12 +32,28 @@ trait Template{
     protected $templateParameters = [];
     
     /**
+     * Sets trait needed injections
+     **/
+    protected function setTraitInjectionsTemplate()
+    {
+        $this->setTraitInjections('Template', ['templateEngine']);
+    }
+    
+    /**
      * Injects template engine instance
      * @param PHPCraft\Template\TemplateInterface $templateEngine template engine instance
      **/
     public function injectTemplateEngine(TemplateInterface $templateEngine)
     {
         $this->templateEngine = $templateEngine;
+    }
+    
+    /**
+     * Inits trait
+     **/
+    protected function initTraitTemplate()
+    {
+        $this->buildTemplateFunctions();
     }
     
     /**
@@ -47,7 +74,15 @@ trait Template{
         $this->setTemplateParameter('application', APPLICATION);
         $this->setTemplateParameter('area', AREA);
         $this->setTemplateParameter('subject', $this->name);
-        $this->templateParameters['translations'] = $this->translations;
+        $this->setTemplateParameter('language', LANGUAGE);
+        $this->setTemplateParameter('configuration', $this->configuration);
+        $this->setTemplateParameter('route', $this->route);
+        $this->setTemplateParameter('translations', $this->translations);
+        $this->setTemplateParameter('action', $this->action);
+        $this->setTemplateParameter('ancestors', $this->ancestors);
+        if($this->hasMessages && !empty($this->storedMessages)) {
+            $this->setTemplateParameter('messages', $this->storedMessages);
+        }
     }
     
     /**
@@ -57,6 +92,29 @@ trait Template{
     public function setPageTitle($title)
     {
         $this->setTemplateParameter('pageTitle', $title);
+    }
+    
+    /**
+     * Builds functions used into templates
+     **/
+    protected function buildTemplateFunctions()
+    {
+        //path to area
+        $this->templateEngine->addFunction('pathToArea', function () {
+            return implode('/', $this->buildPathToArea()) . '/';
+        });
+        //path to subject
+        $this->templateEngine->addFunction('pathToSubject', function () {
+            return implode('/', $this->buildPathToSubject()) . '/';
+        });
+        //path to action
+        $this->templateEngine->addFunction('pathToAction', function ($action, $configurationUrl = false, $primaryKeyValue = false) {
+            return $this->buildPathToAction($action, $configurationUrl, $primaryKeyValue);
+        });
+        //path to ancestor
+        $this->templateEngine->addFunction('pathToAncestor', function ($ancestor) {
+            return implode('/', $this->buildPathToAncestor($ancestor));
+        });
     }
     
     /**

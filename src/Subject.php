@@ -15,7 +15,7 @@ abstract class Subject
     /**
     * subject name
     **/
-    protected $name;
+    public $name;
     
     /**
     * HTTP objects
@@ -40,12 +40,36 @@ abstract class Subject
     protected $translations;
     
     /**
+    * traits injected objects (to check injection), set by 
+    * array [trait-name] => [injection-property-name-1, injection-property-name-2, ...]
+    **/
+    protected $traitsInjections;
+    
+    /**
+    * traits dependencies from other traits (to avoid conflicts caused by overlapping 'use' statements)
+    * set by traits setTraitDependenciesTrait-name methods
+    * array [trait-name] => [required-other-trait-1, required-other-trait-2, ...]
+    **/
+    protected $traitsDependencies;
+    
+    /**
     * Action can be set:
     *   - as route['parameters']['action'] element
     *   - as route['properties']['action'] element
     *   - by calling setAction method
     **/
     protected $action = false;
+    
+    /**
+    * Subject ancestors in current route, each is an array:
+    *           [subject=>SUBJECT, primaryKey[FIELD1=>VALUE1,...]]
+    **/
+    public $ancestors = [];
+    
+    /**
+    * Others subjects injected
+    **/
+    public $subjects = [];
     
     /**
      * Constructor.
@@ -67,23 +91,9 @@ abstract class Subject
         $this->httpRequest =& $http->request;
         $this->httpResponse =& $http->response;
         $this->httpStream =& $http->stream;
-        $this->processConfiguration($configuration);
-        $this->route = $route;
-        $this->autoExtractAction();
-    }
-    
-    public static function factory($subjectName, &$http, &$configuration = array(), $route = array())
-    {
-        $subjectNameClass = sprintf('%s\%s', APPLICATION_NAMESPACE, str_replace('-', '', ucwords($subjectName, '-')));
-        //load subject configuration
-        $configuration['subjects'][$subjectName] = require sprintf('private/%s/configurations/%s.php', APPLICATION, $subjectName);
-        //instance subject
-        return new $subjectNameClass(
-            $subjectName,
-            $http,
-            $configuration,
-            $route
-        );
+        $this->checkTraitsDependencies();
+        $this->processRoute($route);
+        $this->processConfiguration($configuration);        
     }
     
     /**
@@ -102,37 +112,326 @@ abstract class Subject
     }
     
     /**
+     * build class name
+     * @param string $subjectName of the subject
+     * @throws Exception if property is not related to a used trait ('has' prefix) end it's not set
+     **/
+    protected static function buildClassName($subjectName)
+    {
+        return sprintf('%s\%s', APPLICATION_NAMESPACE, str_replace('-', '', ucwords($subjectName, '-')));
+    }
+    
+    /**
+     * Subject factory
+     * @param string $subjectName of the subject
+     * @param object $http objects container
+     *          ->request Psr\Http\Message\RequestInterface HTTP request handler instance
+     *          ->response Psr\Http\Message\ResponseInterface HTTP response handler instance
+     *          ->stream Psr\Http\Message\StreamInterface HTTP stream handler instance
+     * @param array $configuration global configuration array, with application, areas and subject(s) elements
+     * @param array $route route array with static properties ad URL extracted parameters
+     **/
+    public static function factory($subjectName, &$http, &$configuration = array(), $route = array())
+    {
+        $subjectNameClass = self::buildClassName($subjectName);
+        //load subject configuration
+        $configuration['subjects'][$subjectName] = self::getConfiguration($subjectName);
+        //instance subject
+        return new $subjectNameClass(
+            $subjectName,
+            $http,
+            $configuration,
+            $route
+        );
+    }
+    
+    /**
+     * Injects another subject
+     * @param \PHPCraft\Subject\Subject $subject
+     **/
+    public function injectSubject(\PHPCraft\Subject\Subject $subject)
+    {
+        $this->subjects[$subject->name] = $subject;
+    }
+    
+    /**
+     * Gets a subject configuration
+     * @param string $subjectName
+     * @return array subject configuration
+     **/
+    public static function getConfiguration($subjectName)
+    {
+        return require sprintf('private/%s/configurations/%s.php', APPLICATION, $subjectName);
+    }
+    
+    /**
+     * Gets traits used by class
+     * @return array of used traits names
+     **/
+    protected function getUsedTraits()
+    {
+        $reflection = new \ReflectionClass($this);
+        $properties = $reflection->getProperties();
+        $traits = [];
+        foreach($properties as $property) {
+            $name = $property->getName();
+            if(substr($name, 0, 3) == 'has') {
+                $traits[] = substr($name, 3);
+            }
+        }
+        return $traits;
+    }
+    
+    /**
+     * Sets trait dependencies
+     **/
+    protected function setTraitDependencies($traitName, $dependencies)
+    {
+        $this->traitsDependencies[$traitName] = $dependencies;
+    }
+    
+    /**
+     * Loads traits dependencies from other traits
+     **/
+    protected function checkTraitsDependencies()
+    {
+        $traits = $this->getUsedTraits();
+        $reflection = new \ReflectionClass($this);
+        foreach($traits as $trait) {
+            $methodName = 'setTraitDependencies' . $trait;
+            if($reflection->hasMethod($methodName)) {
+                $this->$methodName();
+                $this->checkTraitDependencies($trait);
+            }
+        }
+    }
+    
+    /**
+     * Checks whether traits required by another trait are used
+     * @param string $traitName
+     * @param string $injectedProperty
+     **/
+    protected function checkTraitDependencies($traitName)
+    {
+        if(isset($this->traitsDependencies[$traitName])) {
+            $reflection = new \ReflectionClass($this);
+            foreach($this->traitsDependencies[$traitName] as $requiredTrait) {
+                $propertyName = 'has' . $requiredTrait;
+                if(!$reflection->hasProperty($propertyName) || !$this->$propertyName) {
+                    throw new \Exception(sprintf('Class %s uses %s trait but %s required trait is not used', $this->buildClassName($this->name), $traitName, $requiredTrait));
+                }
+            }
+        }
+    }
+    
+    /**
+     * Processes route
+     * @param array $route
+     **/
+    protected function processRoute($route)
+    {
+        //ancestors
+        //loop route parameters to get ancestors
+        foreach($route['parameters'] as $parameter => $value) {
+            preg_match('/ancestor[0-9]+/', $parameter, $matches, PREG_OFFSET_CAPTURE);
+            if(!empty($matches)) {
+                $this->ancestors[$value] = [];
+            }
+        }
+        //loop ancestors to get primary keys values
+        foreach($this->ancestors as $subject => $primaryKey) {
+            //require ancestor configuration
+            $configuration = self::getConfiguration($subject);
+            //load ancestor translations
+            //locale
+            if(isset($configuration['locale']) && $configuration['locale']) {
+                $this->loadApplicationTranslations($subject, $configuration['locale']);
+            }
+            //loop primary key values
+            $primaryKey = $configuration['ORM']['primaryKey'];
+            $primaryKey = is_array($primaryKey) ? $primaryKey : [$primaryKey];
+            foreach($primaryKey as $field) {
+                //check field into route parameters
+                if(!isset($route['parameters'][$field])) {
+                    throw new \Exception(sprintf('Current route contains subject %s as ancestor but does not contain parameter for primary key field %s', $ancestor['subject'], $field));
+                }
+                //store field value
+                $this->ancestors[$subject][$field] = $route['parameters'][$field];
+            }
+        }
+        //subject
+        if(isset($route['properties']['subject'])) {
+            $route['parameters']['subject'] = $route['properties']['subject'];
+        }
+        //extract action
+        //static set action first
+        if(isset($route['properties']['action'])) {
+            $this->action = $route['properties']['action'];
+        //action into URL otherwise
+        } else if(isset($route['parameters']['action'])) {
+            $this->action = $route['parameters']['action'];
+        }
+        //traits
+        $traits = $this->getUsedTraits();
+        $reflection = new \ReflectionClass($this);
+        foreach($traits as $trait) {
+            $methodName = 'processRouteTrait' . $trait;
+            if($reflection->hasMethod($methodName)) {
+                $this->$methodName($route);
+            }
+        }
+        //store
+        $this->route = $route;
+    }
+    
+    /**
      * Processes configuration, checks for mandatory parameters, extracts found parameters
      * @param array $configuration
      **/
     protected function processConfiguration($configuration)
     {
-        //database
-        if($this->hasDatabase) {
-            //check parameters
-            if(!isset($configuration['database'])) {
-                throw new \Exception('missing database parameters into configuration');
-            } else {
-                $this->setDBParameters($configuration['database']['driver'], $configuration['database']['host'], $configuration['database']['username'], $configuration['database']['password'], $configuration['database']['database'], $configuration['database']['schema']);
-            }
+        //locale
+        if(isset($configuration['subjects'][$this->name]['locale']) && $configuration['subjects'][$this->name]['locale']) {
+            $this->loadApplicationTranslations($this->name, $configuration['subjects'][$this->name]['locale']);
         }
-        //ORM
-        if($this->hasORM) {
-            //check parameters
-            if(!isset($configuration['subjects'][$this->name]['ORM'])) {
-                throw new \Exception(sprintf('missing ORM parameters into %s subject configuration', $this->name));
-            } else {
-                $parameters = ['table', 'view', 'primaryKey'];
-                foreach($parameters as $parameter) {
-                    if(!isset($configuration['subjects'][$this->name]['ORM'][$parameter]) || !$configuration['subjects'][$this->name]['ORM'][$parameter]) {
-                        throw new \Exception(sprintf('missing %s ORM parameters into %s subject configuration', $parameter, $this->name));
-                    }
-                }
-                $this->setORMParameters($configuration['subjects'][$this->name]['ORM']['table'], $configuration['subjects'][$this->name]['ORM']['view'], $configuration['subjects'][$this->name]['ORM']['primaryKey']);
+        //traits
+        $traits = $this->getUsedTraits();
+        $reflection = new \ReflectionClass($this);
+        foreach($traits as $trait) {
+            $methodName = 'processConfigurationTrait' . $trait;
+            if($reflection->hasMethod($methodName)) {
+                $this->$methodName($configuration);
             }
         }
         //store
         $this->configuration = $configuration;
+    }
+    
+    /**
+     * builds path to area from route
+     **/
+    protected function buildPathToArea()
+    {
+        $path = [];
+        if(isset($this->route['parameters']['language'])) {
+            $path[] = $this->route['parameters']['language'];
+        }
+        if(isset($this->route['parameters']['area'])) {
+            $path[] = $this->route['parameters']['area'];
+        }
+        return $path;
+    }
+    
+    /**
+     * builds path to subject from route
+     **/
+    protected function buildPathToSubject()
+    {
+        $path = $this->buildPathToArea();
+        foreach((array) $this->ancestors as $ancestor => $primaryKeyValues) {
+            $path[] = $ancestor;
+            $path[] = implode('|', array_values($primaryKeyValues));
+        }
+        if(isset($this->route['parameters']['subject'])) {
+            $path[] = $this->route['parameters']['subject'];
+        }
+        return $path;
+    }
+    
+    /**
+     * builds path to action from configurated action URL (if any)
+     * @param string $action;
+     * @param string $configurationUrl;
+     **/
+    protected function buildPathToAction($action, $configurationUrl = false, $primaryKeyValue = false)
+    {
+        //no configurated url, default
+        if(!$configurationUrl) {
+            $url = sprintf('/%s/%s', implode('/', $this->buildPathToSubject()), $action);
+        } else {
+            //asterisk in front means to use path to subject + url
+            if(substr($configurationUrl,0,1) == '*') {
+                $url = sprintf('%s/%s', implode('/', $this->buildPathToSubject()), substr($configurationUrl,1));
+            } else {
+            //NO asterisk in front means to use path to area + url
+                $url = sprintf('%s/%s', implode('/', $this->buildPathToArea()), $configurationUrl);
+            }
+        }
+        //insert primaryKey(s) value(s)
+        $url = sprintf($url, $primaryKeyValue);
+        return $url;
+    }
+    
+    /**
+     * builds path to an ancestor
+     **/
+    protected function buildPathToAncestor($lastAncestor)
+    {
+        $path = $this->buildPathToArea();
+        foreach((array) $this->ancestors as $ancestor => $primaryKeyValues) {
+            $path[] = $ancestor;
+            if($ancestor != $lastAncestor) {
+                $path[] = implode('|', array_values($primaryKeyValues));
+            } else {
+                $path[] = 'list';
+            }
+        }
+        return $path;
+    }
+    
+    /**
+     * Sets trait injection dependency
+     **/
+    protected function setTraitInjections($traitName, $injectedProperties)
+    {
+        $this->traitsInjections[$traitName] = $injectedProperties;
+    }
+    
+    /**
+     * Checks that injections needed by traits have been performed
+     **/
+    protected function checkTraitsInjections()
+    {
+        $traits = $this->getUsedTraits();
+        $reflection = new \ReflectionClass($this);
+        foreach($traits as $trait) {
+            $methodName = 'setTraitInjections' . $trait;
+            if($reflection->hasMethod($methodName)) {
+                $this->$methodName();
+                $this->checkTraitInjections($trait);
+            }
+        }
+    }
+    
+    /**
+     * Checks whether required objects for a trais have been injected
+     * @param string $traitName
+     **/
+    protected function checkTraitInjections($traitName)
+    {
+        if(isset($this->traitsInjections[$traitName])) {
+            $reflection = new \ReflectionClass($this);
+            foreach($this->traitsInjections[$traitName] as $propertyName) {
+                if(!$reflection->hasProperty($propertyName) || !$this->$propertyName) {
+                    throw new \Exception(sprintf('Class %s uses %s trait but %s property has not been injected', $this->buildClassName($this->name), $traitName, $propertyName));
+                }
+            }
+        }
+    }
+    
+    /**
+     * Performs initialization tasks needed by traits calling the optional initTraitTrait-name method
+     **/
+    protected function traitsInit()
+    {
+        $traits = $this->getUsedTraits();
+        $reflection = new \ReflectionClass($this);
+        foreach($traits as $trait) {
+            $methodName = 'initTrait' . $trait;
+            if($reflection->hasMethod($methodName)) {
+                $this->$methodName();
+            }
+        }
     }
     
     /**
@@ -141,7 +440,7 @@ abstract class Subject
      * @param string $pathToIniFile file path from application root
      * @throws InvalidArgumentException if file is not found
      **/
-    public function addTranslations($key, $pathToIniFile)
+    public function loadTranslations($key, $pathToIniFile)
     {
         $path = $pathToIniFile;
         if(!is_file($path)) {
@@ -157,10 +456,10 @@ abstract class Subject
      * @param string $pathToIniFile file path inside private/application-name/curent-language/
      * @throws InvalidArgumentException if file is not found
      **/
-    public function addApplicationTranslations($key, $pathToIniFile)
+    public function loadApplicationTranslations($key, $pathToIniFile)
     {
         $path = sprintf('private/%s/locales/%s/%s', APPLICATION, LANGUAGE, $pathToIniFile);
-        $this->addTranslations($key, $path);
+        $this->loadTranslations($key, $path);
     }
     
     /**
@@ -169,17 +468,6 @@ abstract class Subject
      **/
     public function setAction($action){
         $this->action = $action;
-    }
-    
-    /**
-     * searches fpor action value into route
-     **/
-    public function autoExtractAction(){
-        if(isset($this->route['parameters']['action'])) {
-            $this->action = $this->route['parameters']['action'];
-        } else if(isset($this->route['properties']['action'])) {
-            $this->action = $this->route['properties']['action'];
-        }
     }
     
     /**
@@ -206,7 +494,10 @@ abstract class Subject
         if(!$this->action) {
             throw new \Exception(sprintf('no action defined for subject %s', $this->name));
         }
+        //exec method
         try {
+            $this->checkTraitsInjections();
+            $this->traitsInit();
             $this->{'exec'.$this->sanitizeAction($this->action)}();
         } catch(Exception $exception) {
         //no method defined

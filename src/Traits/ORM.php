@@ -1,9 +1,18 @@
 <?php
+/**
+ * ORM trait for a PHPCraft subject
+ * traits optional automatic called methods:
+ *      setTraitDependencies[trait-name](): calls $this->setTraitDependencies
+ *      setTraitInjections[trait-name](): calls $this->setTraitInjections
+ *      processRouteTrait[trait-name](): processes route
+ *      processConfigurationTrait[trait-name](): processes configuration
+ *      initTrait[trait-name](): performs any task needed by trait BEFORE subject action is performed
+ * @author vuk <http://vuk.bg.it>
+ */
+ 
 namespace PHPCraft\Subject\Traits;
 
 trait ORM{
-    
-    use Database;
     
     /**
     * included trait flag 
@@ -12,8 +21,37 @@ trait ORM{
     
     /**
     * specific database object informations: table, view, primaryKey
+    * primary key is always an array of at least 1 field, even in case of simple primary key definition 
     **/
     protected $ORMParameters;
+    
+    /**
+     * Sets trait dependencies from other traits
+     **/
+    public function setTraitDependenciesORM()
+    {
+        $this->setTraitDependencies('ORM', ['Database']);
+    }
+    
+    /**
+     * Processes configuration
+     * @param array $configuration
+     **/
+    protected function processConfigurationTraitORM(&$configuration)
+    {
+        //check parameters
+        if(!isset($configuration['subjects'][$this->name]['ORM'])) {
+            throw new \Exception(sprintf('missing ORM parameters into %s subject configuration', $this->name));
+        } else {
+            $parameters = ['table', 'view', 'primaryKey'];
+            foreach($parameters as $parameter) {
+                if(!isset($configuration['subjects'][$this->name]['ORM'][$parameter]) || !$configuration['subjects'][$this->name]['ORM'][$parameter]) {
+                    throw new \Exception(sprintf('missing %s ORM parameters into %s subject configuration', $parameter, $this->name));
+                }
+            }
+            $this->setORMParameters($configuration['subjects'][$this->name]['ORM']['table'], $configuration['subjects'][$this->name]['ORM']['view'], $configuration['subjects'][$this->name]['ORM']['primaryKey']);
+        }
+    }
     
      /**
      * sets 
@@ -25,7 +63,7 @@ trait ORM{
     {
         $this->ORMParameters['table'] = $table;
         $this->ORMParameters['view'] = $view;
-        $this->ORMParameters['primaryKey'] = $primaryKey;
+        $this->ORMParameters['primaryKey'] = is_array($primaryKey) ? $primaryKey : [$primaryKey];
     
     }
     
@@ -51,43 +89,25 @@ trait ORM{
     
     /**
      * Builds where conditions (using = operator) from an array of values indexed by fields names
+     * @param mixed $primaryKey string | array indexed by PK fields in case of compound primary key
+     * @throw exception if value(s) do not fit primary key definition
      **/
     protected function primaryKeyWhere($primaryKeyValue)
     {
-        //simple primary key
+        //value is not an array
         if(!is_array($primaryKeyValue)) {
-            //check that configured primaryKey is also not an array
-            if(is_array($this->ORMParameters['primaryKey'])) {
-                throw new \Exception(sprintf('table %s primary key is compound so values must be passed by an array', $this->table()));
-            } else {
-                $this->queryBuilder->where($this->ORMParameters['primaryKey'], $primaryKeyValue);
-            }
-        } else {
-        //compound primary key
+            //turn value into array for first primary key field
+            $primaryKeyValue = [
+                $this->ORMParameters['primaryKey'][0] => $primaryKeyValue
+            ];
         }
-        
-        //simple primary key
-        if(!is_array($this->ORMParameters['primaryKey'])) {
-            //check that value is also not an array
-            if(is_array($primaryKeyValue)) {
-                throw new \Exception(sprintf('table %s primary key is simple so values must not be passed by an array', $this->table()));
+        //loop primary key fields
+        foreach($this->ORMParameters['primaryKey'] as $field) {
+            //check value
+            if(!isset($primaryKeyValue[$field])) {
+                throw new \Exception(sprintf('missing field % value in where clause for table %s compound primary key', $field, $this->table()));
             } else {
-                $this->queryBuilder->where($this->ORMParameters['primaryKey'], $primaryKeyValue);
-            }
-        } else {
-        //compound primary key
-            if(!is_array($primaryKeyValue)) {
-                throw new \Exception(sprintf('table %s primary key is compound so values must be passed by an array', $this->table()));
-            } else {
-                //loop primary key fields
-                foreach($this->ORMParameters['primaryKey'] as $field) {
-                    //check field value
-                    if(!isset($primaryKeyValue[$field])) {
-                        throw new \Exception(sprintf('missing field % value in where clause for table %s compound primary key', $field, $this->table()));
-                    } else {
-                        $this->queryBuilder->where($field, $primaryKeyValue[$field]);
-                    }
-                }
+                $this->queryBuilder->where($field, $primaryKeyValue[$field]);
             }
         }
     }
@@ -121,6 +141,21 @@ trait ORM{
     public function getFirst($where = array(), $order = array())
     {
         return current($this->get($where, $order));
+    }
+    
+    /**
+     * gets one record by primary key value(s)
+     * @param mixed $primaryKeyValue it can be:
+     *          a single string value
+     *          associative array of values indexed by fields names (compound primary key)
+     * @return object record
+     **/
+    public function getByPrimaryKey($primaryKeyValue)
+    {
+        $this->connectToDB();
+        $this->queryBuilder->table($this->view());
+        $this->primaryKeyWhere($primaryKeyValue);
+        return current($this->queryBuilder->get());
     }
     
     /**
