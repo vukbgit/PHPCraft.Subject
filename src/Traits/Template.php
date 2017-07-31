@@ -100,12 +100,12 @@ trait Template{
     protected function buildTemplateFunctions()
     {
         //path to area
-        $this->templateEngine->addFunction('pathToArea', function () {
-            return implode('/', $this->buildPathToArea()) . '/';
+        $this->templateEngine->addFunction('pathToArea', function ($language = false) {
+            return implode('/', $this->buildPathToArea($language)) . '/';
         });
         //path to subject
-        $this->templateEngine->addFunction('pathToSubject', function () {
-            return implode('/', $this->buildPathToSubject()) . '/';
+        $this->templateEngine->addFunction('pathToSubject', function ($language = false) {
+            return implode('/', $this->buildPathToSubject($language)) . '/';
         });
         //path to action
         $this->templateEngine->addFunction('pathToAction', function ($action, $configurationUrl = false, $primaryKeyValue = false) {
@@ -118,8 +118,9 @@ trait Template{
     }
     
     /**
-     * Renders template
+     * Renders template and writes output to HTTP stream
      * @param string $path;
+     * @return string HTML content
      **/
     protected function renderTemplate($path = false)
     {
@@ -132,5 +133,6 @@ trait Template{
         $this->setCommonTemplateParameters();
         $html = $this->templateEngine->render($path, $this->templateParameters);
         $this->httpStream->write($html);
+        return $html;
     }
 }

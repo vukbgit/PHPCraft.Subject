@@ -161,7 +161,7 @@ trait ORM{
     /**
      * Inserts record
      * @param array $fieldsValues
-     * @return mixed $primaryKeyValue id o new record (if query builder insert operation returns it)
+     * @return mixed $primaryKeyValue id of new record (if query builder insert operation returns it) or false
      */
     public function insert($fieldsValues)
     {
@@ -176,7 +176,7 @@ trait ORM{
      *          a single string value
      *          associative array of values indexed by fields names (compound primary key)
      * @param array $fieldsValues
-     * @return mixed $primaryKeyValue 
+     * @return mixed $primaryKeyValue or false
      */
     public function update($primaryKeyValue, $fieldsValues)
     {

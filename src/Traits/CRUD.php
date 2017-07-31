@@ -207,8 +207,9 @@ trait CRUD{
             try{
                 //ORM update
                 $this->purgePrimaryKeyValue($input);
-                $this->insert($input);
-                $this->messages->save('cookies','success',sprintf($this->translations[$this->name]['CRUD']['insert-success'], $this->translations[$this->name]['singular']));
+                if($this->insert($input)) {
+                    $this->messages->save('cookies','success',sprintf($this->translations[$this->name]['CRUD']['insert-success'], $this->translations[$this->name]['singular']));
+                }
             } catch(\PDOException $exception) {
                 $this->messages->save('cookies', 'danger', $this->handleError($exception));
                 if(!isset($redirectAction)) {
@@ -237,8 +238,9 @@ trait CRUD{
             try{
                 //ORM insert
                 $this->purgePrimaryKeyValue($input);
-                $this->update($primaryKeyValue, $input);
-                $this->messages->save('cookies','success',sprintf($this->translations[$this->name]['CRUD']['update-success'], $this->translations[$this->name]['singular']));
+                if($this->update($primaryKeyValue, $input)) {
+                    $this->messages->save('cookies','success',sprintf($this->translations[$this->name]['CRUD']['update-success'], $this->translations[$this->name]['singular']));
+                }
             } catch(\PDOException $exception) {
                 $this->messages->save('cookies', 'danger', $this->handleError($exception));
                 if(!isset($redirectAction)) {

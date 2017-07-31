@@ -309,13 +309,18 @@ abstract class Subject
     
     /**
      * builds path to area from route
+     * @param $language language code to embed into URL when different from currently selected one
      **/
-    protected function buildPathToArea()
+    protected function buildPathToArea($language = false)
     {
         $path = [];
-        if(isset($this->route['parameters']['language'])) {
+        //language
+        if($language) {
+            $path[] = $language;
+        } elseif(isset($this->route['parameters']['language'])) {
             $path[] = $this->route['parameters']['language'];
         }
+        //area
         if(isset($this->route['parameters']['area'])) {
             $path[] = $this->route['parameters']['area'];
         }
@@ -324,14 +329,18 @@ abstract class Subject
     
     /**
      * builds path to subject from route
+     * @param $language language code to embed into URL when different from currently selected one
      **/
-    protected function buildPathToSubject()
+    protected function buildPathToSubject($language = false)
     {
-        $path = $this->buildPathToArea();
+        //area
+        $path = $this->buildPathToArea($language);
+        //ancestors
         foreach((array) $this->ancestors as $ancestor => $primaryKeyValues) {
             $path[] = $ancestor;
             $path[] = implode('|', array_values($primaryKeyValues));
         }
+        //subject
         if(isset($this->route['parameters']['subject'])) {
             $path[] = $this->route['parameters']['subject'];
         }
@@ -374,6 +383,7 @@ abstract class Subject
                 $path[] = implode('|', array_values($primaryKeyValues));
             } else {
                 $path[] = 'list';
+                break;
             }
         }
         return $path;
