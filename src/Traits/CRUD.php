@@ -114,9 +114,9 @@ trait CRUD{
     protected function purgePrimaryKeyValue(&$record)
     {
         foreach((array) $this->ORMParameters['primaryKey'] as $field) {
-            if(is_array($record) && isset($record[$field]) ) {
+            if(is_array($record) && (isset($record[$field]) || $record[$field] === null)) {
                 unset($record[$field]);
-            } elseif(is_object($record) && isset($record->$field) ) {
+            } elseif(is_object($record) && (isset($record->$field) || $record[$field] === null)) {
                 unset($record->$field);
             }
         }
