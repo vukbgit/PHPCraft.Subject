@@ -113,14 +113,10 @@ trait CRUD{
      */
     protected function purgePrimaryKeyValue(&$record)
     {
-        //do not purge compound primary keys
-        if(count($this->ORMParameters['primaryKey']) > 1) {
-            return;
-        }
         foreach((array) $this->ORMParameters['primaryKey'] as $field) {
-            if(is_array($record) && (isset($record[$field]) || $record[$field] === null)) {
+            if(is_array($record) && isset($record[$field]) ) {
                 unset($record[$field]);
-            } elseif(is_object($record) && (isset($record->$field) || $record[$field] === null)) {
+            } elseif(is_object($record) && isset($record->$field) ) {
                 unset($record->$field);
             }
         }
@@ -209,7 +205,7 @@ trait CRUD{
         $input = $this->processSaveInput(filter_input_array(INPUT_POST, $this->configuration['subjects'][$this->name]['CRUD']['inputFields']));
         if($input) {
             try{
-                //ORM insert
+                //ORM update
                 $this->purgePrimaryKeyValue($input);
                 if($this->insert($input)) {
                     $this->messages->save('cookies','success',sprintf($this->translations[$this->name]['CRUD']['insert-success'], $this->translations[$this->name]['singular']));
@@ -259,8 +255,9 @@ trait CRUD{
     
     /**
      * Delete record action
+     * @param string $redirectAction
      */
-    protected function execDelete()
+    public function execDelete($redirectAction = false)
     {
         // database translations
         $this->loadTranslations('database', sprintf('private/global/locales/%s/database.ini', LANGUAGE));
@@ -279,7 +276,7 @@ trait CRUD{
             }
         }
         //redirect
-        $redirectAction = isset($redirectAction) ? $redirectAction : 'list';
+        $redirectAction = $redirectAction ? $redirectAction : 'list';
         $this->httpResponse = $this->httpResponse->withHeader('Location', $redirectAction);
     }
     
