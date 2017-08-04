@@ -93,8 +93,8 @@ trait Authentication{
             $this->messages->save('cookies','danger',$this->translations[$this->name][$message]);
             $this->httpResponse = $this->httpResponse->withHeader('Location', $this->configuration['basePath'] . $this->configuration['areas'][AREA]['authentication']['loginURL']);
         }else{
-            $loginRequestedUrl = $this->cookies->get('authenticationRequestedUrl', $this->configuration['basePath'] . $this->configuration['areas'][AREA]['authentication']['firstPage']);
-            $this->cookies->delete('authenticationRequestedUrl');
+            $loginRequestedUrl = $this->cookies->get(sprintf('authenticationRequestedUrl_%s', AREA), $this->configuration['basePath'] . $this->configuration['areas'][AREA]['authentication']['firstPage']);
+            $this->cookies->delete(sprintf('authenticationRequestedUrl_%s', AREA));
             $this->httpResponse = $this->httpResponse->withHeader('Location', $loginRequestedUrl);
         }
     }
