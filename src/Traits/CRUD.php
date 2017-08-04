@@ -113,6 +113,10 @@ trait CRUD{
      */
     protected function purgePrimaryKeyValue(&$record)
     {
+        //do not purge compound primary keys
+        if(count($this->ORMParameters['primaryKey']) > 1) {
+            return;
+        }
         foreach((array) $this->ORMParameters['primaryKey'] as $field) {
             if(is_array($record) && (isset($record[$field]) || $record[$field] === null)) {
                 unset($record[$field]);
@@ -205,7 +209,7 @@ trait CRUD{
         $input = $this->processSaveInput(filter_input_array(INPUT_POST, $this->configuration['subjects'][$this->name]['CRUD']['inputFields']));
         if($input) {
             try{
-                //ORM update
+                //ORM insert
                 $this->purgePrimaryKeyValue($input);
                 if($this->insert($input)) {
                     $this->messages->save('cookies','success',sprintf($this->translations[$this->name]['CRUD']['insert-success'], $this->translations[$this->name]['singular']));

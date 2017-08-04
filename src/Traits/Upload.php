@@ -72,8 +72,8 @@ trait Upload{
         }
         //template parameters, for all actions except upload that is ajax called
         if($this->action != 'upload') {
-            //upload_max$propertyNameize
-            $this->setTemplateParameter('uploadMaxFilesize', ini_get('upload_max$propertyNameize'));
+            //upload_max_filesize
+            $this->setTemplateParameter('uploadMaxFilesize', ini_get('upload_max_filesize'));
             //fields preview templates
             $uploadPreviewsTemplates = [];
             foreach($this->uploadFieldsDefinitions as $field => $uploadFieldsDefinition) {
@@ -223,13 +223,19 @@ trait Upload{
             if(!$fieldValue) {
                 continue;
             }
+            //ERRORE "Cannot use object of type stdClass as array" ALLA RIGA 230
+            continue;
             //get posted value
             if($this->action == 'update') {
-                $postedInputs = array_keys(get_object_vars(json_decode($input[$field])));
+                $a = $input[$field];
+                $fieldObject = json_decode($a);
+                //$a = get_object_vars($a);
+                //$postedInputs = array_keys($a);
             }
             //loop inputs
             foreach((array) $fieldValue as $hash => $input) {
-                if($this->action == 'delete' || !in_array($hash, $postedInputs)) {
+                //if($this->action == 'delete' || !in_array($hash, $postedInputs)) {
+                if($this->action == 'delete' || !isset($fieldObject->$hash)) {
                     //loop outputs
                     foreach($input->outputs as $output) {
                         if(is_file($output->path)) {

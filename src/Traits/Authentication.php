@@ -98,4 +98,38 @@ trait Authentication{
             $this->httpResponse = $this->httpResponse->withHeader('Location', $loginRequestedUrl);
         }
     }
+    
+    /**
+     * authenticates user
+     */
+    protected function execLogout()
+    {
+        $logoutService = $this->authFactory->newLogoutService();
+        $auth = $this->authFactory->newInstance();
+        $logoutService->logout($auth);
+        $this->httpResponse = $this->httpResponse->withHeader('Location', '/' . $this->configuration['areas'][AREA]['authentication']['loginURL']);
+    }
+    
+    /**
+     * gets current user
+     **/
+    private function getUserData()
+    {
+        $auth = $this->authFactory->newInstance();
+        return null !== $auth->getUserData() ? $auth->getUserData() : false;
+    }
+    
+    /**
+     * Sets a property for current user
+     **/
+    private function setUserData($property, $value)
+    {
+        $auth = $this->authFactory->newInstance();
+        $userData = $auth->getUserData();
+        if(!$userData) {
+            return;
+        }
+        $userData[$property] = $value;
+        $auth->setUserData($userData);
+    }
 }
