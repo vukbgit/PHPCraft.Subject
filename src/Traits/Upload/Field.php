@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPCraft\Subject\Upload;
+namespace PHPCraft\Subject\Traits\Upload;
 
 /**
  * Manages uploads using codeguy/upload  (https://github.com/codeguy/Upload.git)
