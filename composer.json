@@ -13,9 +13,9 @@
         "phpcraft/cookie": "@dev"
     },
     "suggest": {
-        "phpcraft/database": "For database integration (SectionWithDatabase class)",
-        "phpcraft/message": "For CRUD integration (SectionWithCRUD class)",
-        "phpcraft/csv": "For CRUD integration (SectionWithCRUD class)",
+        "aura/auth": "For user authentication",
+        "phpcraft/database": "For database integration (Database trait)",
+        "phpcraft/message": "For message integration (Messages trait)",
         "aptoma/twig-markdown": "twig adapter for template markdown capability",
         "michelf/php-markdown": "markdown engine for template markdown capability",
         "tinymce/tinymce": "HTML WYSIWYG editor for richtext fields",
