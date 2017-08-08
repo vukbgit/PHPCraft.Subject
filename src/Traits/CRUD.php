@@ -114,7 +114,7 @@ trait CRUD{
     protected function purgePrimaryKeyValue(&$record)
     {
         foreach((array) $this->ORMParameters['primaryKey'] as $field) {
-            if(is_array($record) && isset($record[$field]) ) {
+            if(is_array($record) && (isset($record[$field]) || $record[$field] === null)) {
                 unset($record[$field]);
             } elseif(is_object($record) && isset($record->$field) ) {
                 unset($record->$field);
@@ -143,8 +143,6 @@ trait CRUD{
         $this->templateParameters['table_filter']['field'] = $this->cookies->get(sprintf('table_filter_%s_field', $this->name));
         $this->templateParameters['table_filter']['input'] = $this->cookies->get(sprintf('table_filter_%s_input', $this->name));
         //render
-        
-        
         $this->renderTemplate();
     }
     
