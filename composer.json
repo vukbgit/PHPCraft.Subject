@@ -9,16 +9,15 @@
 	}
     ],
     "require": {
-        "phpcraft/template": "@dev",
-        "phpcraft/cookie": "@dev"
     },
     "suggest": {
-        "aura/auth": "For user authentication",
+        "aura/auth": "For user authentication (Authentication trait)",
+        "phpcraft/cookie": "For cookies integration (Cookies trait)",
         "phpcraft/database": "For database integration (Database trait)",
-        "phpcraft/message": "For message integration (Messages trait)",
-        "aptoma/twig-markdown": "twig adapter for template markdown capability",
-        "michelf/php-markdown": "markdown engine for template markdown capability",
-        "tinymce/tinymce": "HTML WYSIWYG editor for richtext fields",
+        "phpcraft/image": "For images manipulation (Images trait)",
+        "phpcraft/message": "For inline notifications integration (Messages trait)",
+        "phpcraft/template": "For template engine integration (Template trait)",
+        "phpcraft/upload": "For upload functionalities (Upload trait)",
         "cocur/slugify": "to manage slug into URLs"
     },
     "autoload": {
