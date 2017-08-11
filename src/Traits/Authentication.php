@@ -42,6 +42,22 @@ trait Authentication{
     }
     
     /**
+     * Processes configuration
+     * @param array $configuration
+     **/
+    protected function processConfigurationTraitAuthentication(&$configuration)
+    {
+        //services
+        if(!isset($configuration['areas'][AREA]['authentication']['services']) || !$configuration['areas'][AREA]['authentication']['services']) {
+            throw new \Exception(sprintf('missing autentication "services" parameter into %s configuration', AREA));
+        } else {
+            if(!is_array($configuration['areas'][AREA]['authentication']['services'])) {
+                $configuration['areas'][AREA]['authentication']['services'] = [$configuration['areas'][AREA]['authentication']['services']];
+            }
+        }
+    }
+    
+    /**
      * Injects cookies manager instance
      * @param Aura\Auth\AuthFactory $cookies cookies manager instance
      **/
@@ -61,7 +77,10 @@ trait Authentication{
     }
     
     /**
-     * authenticates user
+     * authenticates user looping services defined into configuration[areas][AREA][authentication][services] array and calling authenticate[service-name] method on each service.
+     * Authenticate methods must accept as arguments username, password and return returnCode (integer)
+     * returnCode can be: 1 (username not found), 2 (wrong password), 3 (login correct but user is disabled), 4 (valid login)
+     * messages must be defined into locale as authentication_message_[returnCode]
      */
     protected function execAuthenticate()
     {
@@ -71,26 +90,25 @@ trait Authentication{
             'password' => FILTER_SANITIZE_STRING
         );
         $input = filter_input_array(INPUT_POST, $args);
-        //httpasswd authentication
-        $path = sprintf('private/%s/configurations/%s/.htpasswd', APPLICATION, AREA);
-        $htpasswdAdapter = $this->authFactory->newHtpasswdAdapter($path);
-        $loginService = $this->authFactory->newLoginService($htpasswdAdapter);
-        $auth = $this->authFactory->newInstance();
-        try {
-            $loginService->login($auth, array(
-                'username' => $input['username'],
-                'password' => $input['password']
-            ));
-            $error = false;
-        } catch(\Aura\Auth\Exception\UsernameNotFound $e) {
-            $error = true;
-            $message = 'wrong_username';
-        } catch(\Aura\Auth\Exception\PasswordIncorrect $e) {
-            $error = true;
-            $message = 'wrong_password';
+        $username = trim($input['username']);
+        $password = trim($input['password']);
+        $returnCode = 0;
+        //loop services
+        foreach($this->configuration['areas'][AREA]['authentication']['services'] as $service) {
+            try {
+                $method = sprintf('authenticate%s', $this->sanitizeAction($service));
+                $serviceReturnCode = $this->$method($username, $password, $returnCode);
+                //store returnCode if higher than previus one
+                if($serviceReturnCode > $returnCode) {
+                    $returnCode = $serviceReturnCode;
+                }
+            } catch(\Error $exception) {
+            //no method defined
+                throw new \Error(sprintf('no method "%s" defined into class %s for handling authentication service "%s"', $method, $this->buildClassName($this->name), $service));
+            }
         }
-        if($error){
-            $this->messages->save('cookies','danger',$this->translations[$this->name][$message]);
+        if($returnCode !== 4){
+            $this->messages->save('cookies','danger',$this->translations[$this->name][sprintf('authentication_message_%d', $returnCode)]);
             $this->httpResponse = $this->httpResponse->withHeader('Location', $this->configuration['basePath'] . $this->configuration['areas'][AREA]['authentication']['loginURL']);
         }else{
             $loginRequestedUrl = $this->cookies->get(sprintf('authenticationRequestedUrl_%s', AREA), $this->configuration['basePath'] . $this->configuration['areas'][AREA]['authentication']['firstPage']);
@@ -100,7 +118,34 @@ trait Authentication{
     }
     
     /**
-     * authenticates user
+     * Authenticates user from a htpasswd file
+     * @param string $username
+     * @param string $password
+     * @return int $returnCode: 1 (username not found), 2 (wrong password), 3 (login correct but user is disabled), 4 (valid login)
+     */
+    protected function authenticateHtpasswd($username, $password)
+    {
+        $returnCode = 0;
+        $path = sprintf('private/%s/configurations/%s/.htpasswd', APPLICATION, AREA);
+        $htpasswdAdapter = $this->authFactory->newHtpasswdAdapter($path);
+        $loginService = $this->authFactory->newLoginService($htpasswdAdapter);
+        $auth = $this->authFactory->newInstance();
+        try {
+            $loginService->login($auth, array(
+                'username' => $username,
+                'password' => $password
+            ));
+            $returnCode = 4;
+        } catch(\Aura\Auth\Exception\UsernameNotFound $e) {
+            $returnCode = 1;
+        } catch(\Aura\Auth\Exception\PasswordIncorrect $e) {
+            $returnCode = 2;
+        }
+        return $returnCode;
+    }
+    
+    /**
+     * Execs logout
      */
     protected function execLogout()
     {
@@ -108,6 +153,16 @@ trait Authentication{
         $auth = $this->authFactory->newInstance();
         $logoutService->logout($auth);
         $this->httpResponse = $this->httpResponse->withHeader('Location', '/' . $this->configuration['areas'][AREA]['authentication']['loginURL']);
+    }
+    
+    /**
+     * checks wether current user is authenticated
+     **/
+    public function isAuthenticated()
+    {
+        $auth = $this->authFactory->newInstance();
+        $logStatus = $auth->getStatus();
+        return $logStatus == 'VALID';
     }
     
     /**

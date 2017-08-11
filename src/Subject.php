@@ -114,7 +114,6 @@ abstract class Subject
     /**
      * build class name
      * @param string $subjectName of the subject
-     * @throws Exception if property is not related to a used trait ('has' prefix) end it's not set
      **/
     protected static function buildClassName($subjectName)
     {
