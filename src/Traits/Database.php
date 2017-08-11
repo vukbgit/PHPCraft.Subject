@@ -116,6 +116,11 @@ trait Database{
      **/
     public function schema()
     {
+        //ORM schema
+        if($this->hasORM && $this->ORMParameters['schema']) {
+            return $this->ORMParameters['schema'] . '.';
+        }
+        //global schema
         if(isset($this->DBParameters['schema']) && $this->DBParameters['schema']) {
             return $this->DBParameters['schema'] . '.';
         }
@@ -138,8 +143,8 @@ trait Database{
      **/
     protected function handleError($exception){
         $error = $this->queryBuilder->handleQueryException($exception);
-        if($error[0] && isset($this->translations[$this->name][$error[0].'_'.$error[1]])) {
-            $message = $this->translations[$this->name][$error[0].'_'.$error[1]];
+        if($error[0] && isset($this->translations[$this->name]['query_errors'][$error[0].'_'.$error[1]])) {
+            $message = $this->translations[$this->name]['query_errors'][$error[0].'_'.$error[1]];
         } else {
             $message = sprintf($this->translations['database']['query_error'],$error[0], $error[1]);
         }

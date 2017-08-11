@@ -115,6 +115,15 @@ trait Template{
         $this->templateEngine->addFunction('pathToAncestor', function ($ancestor) {
             return implode('/', $this->buildPathToAncestor($ancestor));
         });
+        //authentication functions
+        if($this->hasAuthentication) {
+            $this->templateEngine->addFunction('hasPermission', function ($subject, $permission) {
+                return $this->hasPermission($subject, $permission);
+            });
+            $this->templateEngine->addFunction('hasSubjectPermission', function ($subject) {
+                return $this->hasSubjectPermission($subject);
+            });
+        }
     }
     
     /**

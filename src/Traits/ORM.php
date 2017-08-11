@@ -20,7 +20,7 @@ trait ORM{
     protected $hasORM = true;
     
     /**
-    * specific database object informations: table, view, primaryKey
+    * specific database object informations: table, view, primaryKey, schema
     * primary key is always an array of at least 1 field, even in case of simple primary key definition 
     **/
     protected $ORMParameters;
@@ -49,7 +49,8 @@ trait ORM{
                     throw new \Exception(sprintf('missing %s ORM parameters into %s subject configuration', $parameter, $this->name));
                 }
             }
-            $this->setORMParameters($configuration['subjects'][$this->name]['ORM']['table'], $configuration['subjects'][$this->name]['ORM']['view'], $configuration['subjects'][$this->name]['ORM']['primaryKey']);
+            $schema = isset($configuration['subjects'][$this->name]['ORM']['schema']) ? $configuration['subjects'][$this->name]['ORM']['schema'] : false;
+            $this->setORMParameters($configuration['subjects'][$this->name]['ORM']['table'], $configuration['subjects'][$this->name]['ORM']['view'], $configuration['subjects'][$this->name]['ORM']['primaryKey'], $schema);
         }
     }
     
@@ -58,12 +59,14 @@ trait ORM{
      * @param string $table
      * @param string $view
      * @param mixed $primaryKey string | array (in case of compound primary keys)
+     * @param string $schema
      **/
-    public function setORMParameters($table, $view, $primaryKey)
+    public function setORMParameters($table, $view, $primaryKey, $schema = false)
     {
         $this->ORMParameters['table'] = $table;
         $this->ORMParameters['view'] = $view;
         $this->ORMParameters['primaryKey'] = is_array($primaryKey) ? $primaryKey : [$primaryKey];
+        $this->ORMParameters['schema'] = $schema;
     
     }
     
