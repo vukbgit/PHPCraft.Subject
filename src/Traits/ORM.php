@@ -200,4 +200,12 @@ trait ORM{
         $this->queryBuilder->table($this->table());
         $this->queryBuilder->delete($fieldsValues);
     }
+    
+    /**
+     * Refreshes materialized view
+     */
+    private function refreshMaterializedView()
+    {
+        $this->queryBuilder->execRaw(sprintf('REFRESH MATERIALIZED VIEW %s;', $this->view()));
+    }
 }
