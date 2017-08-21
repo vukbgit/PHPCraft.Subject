@@ -26,6 +26,11 @@ trait Authentication{
     protected $authFactory;
     
     /**
+    * Password generator class instance
+    **/
+    protected $passwordGenerator;
+    
+    /**
     * Handy flag to remebers if classes uses permissions system
     **/
     protected $usesPermissions = false;
@@ -34,6 +39,13 @@ trait Authentication{
     * User group permissions container, indexed by subject name, each element is an array of granted permissions
     **/
     protected $subjectsPermissions;
+    
+    /**
+    * database drivers password functions
+    **/
+    protected $dbPasswordFunctions = [
+        'pgsql' => "public.CRYPT('%s', %s)"
+    ];
     
     /**
      * Sets trait dependencies from other traits
@@ -48,7 +60,8 @@ trait Authentication{
      **/
     protected function setTraitInjectionsAuthentication()
     {
-        $this->setTraitInjections('Authentication', ['authFactory']);
+        $injections = ['authFactory'];
+        $this->setTraitInjections('Authentication', $injections);
     }
     
     /**
@@ -95,6 +108,15 @@ trait Authentication{
     public function injectAuthFactory(\Aura\Auth\AuthFactory $authFactory)
     {
         $this->authFactory = $authFactory;
+    }
+    
+    /**
+     * Injects password generator
+     * @param Hackzilla\PasswordGenerator\Generator\ComputerPasswordGenerator $passwordGenerator
+     **/
+    public function injectPasswordGenerator(\Hackzilla\PasswordGenerator\Generator\ComputerPasswordGenerator $passwordGenerator)
+    {
+        $this->passwordGenerator = $passwordGenerator;
     }
     
     /**
@@ -194,7 +216,9 @@ trait Authentication{
                 'password' => $password
             ));
             $returnCode = 4;
-            $userData = [];
+            $userData = [
+                'username' => $username
+            ];
         } catch(\Aura\Auth\Exception\UsernameNotFound $e) {
             $returnCode = 1;
         } catch(\Aura\Auth\Exception\PasswordIncorrect $e) {
@@ -213,6 +237,10 @@ trait Authentication{
         $logoutService->logout($auth);
         $this->httpResponse = $this->httpResponse->withHeader('Location', '/' . $this->configuration['areas'][AREA]['authentication']['loginURL']);
     }
+    
+    /**
+    * USER'S OPERATION
+    **/
     
     /**
      * checks wether current user is authenticated
@@ -246,6 +274,10 @@ trait Authentication{
         $userData[$property] = $value;
         $auth->setUserData($userData);
     }
+    
+    /**
+    * PERMISSIONS
+    **/
     
     /**
      * Gets current user roles
@@ -319,5 +351,35 @@ trait Authentication{
     {
         $permissions = $this->getUserPermissions();
         return isset($permissions[$subject]) && !empty($permissions[$subject]);
+    }
+    
+    /**
+    * DATABASE SERVICE OPERATIONS
+    **/
+    
+    /**
+     * Generates password
+     * @return string password
+     **/
+    private function generatePassword() {
+        //password settings
+        $this->passwordGenerator
+            ->setOptionValue(\Hackzilla\PasswordGenerator\Generator\ComputerPasswordGenerator::OPTION_UPPER_CASE, true)
+            ->setOptionValue(\Hackzilla\PasswordGenerator\Generator\ComputerPasswordGenerator::OPTION_LOWER_CASE, true)
+            ->setOptionValue(\Hackzilla\PasswordGenerator\Generator\ComputerPasswordGenerator::OPTION_NUMBERS, true)
+            ->setOptionValue(\Hackzilla\PasswordGenerator\Generator\ComputerPasswordGenerator::OPTION_SYMBOLS, false)
+            ->setLength(8)
+            ;
+        return $this->passwordGenerator->generatePassword();
+    }
+    
+    /**
+     * Generates password for insert SQL query
+     * @param string $password
+     * @return string sql code for storing password
+     **/
+    private function buildPasswordSQL($password) {
+        $this->connectToDb();
+        return $this->queryBuilder->raw(sprintf($this->dbPasswordFunctions[$this->DBParameters['driver']], $password, "GEN_SALT('md5')"));
     }
 }
