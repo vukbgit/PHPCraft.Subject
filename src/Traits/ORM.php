@@ -117,7 +117,7 @@ trait ORM{
     
     /**
      * gets records
-     * @param array $where conditions (usiing = operator) in the form field => value
+     * @param array $where conditions in the form field => value, operator is supposed to be =, to use other operators see Traits/Database::where
      * @param array $order order in the form field => direction (ASC | DESC)
      * @return array of records
      **/

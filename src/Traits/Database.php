@@ -127,12 +127,18 @@ trait Database{
     }
     
     /**
-     * Builds where conditions (using = operator) from an array of values indexed by fields names
+     * Builds where conditions from an array of values indexed by fields names
+     * if value is not an array operator is supposed to be =
+     * if value is an array first element is used as field value, second one as operator
      **/
     protected function where($where)
     {
         foreach($where as $field => $value) {
-            $this->queryBuilder->where($field, $value);
+            if(!is_array($value)) {
+                $this->queryBuilder->where($field, $value);
+            } else {
+                $this->queryBuilder->where($field, $value[1], $value[0]);
+            }
         }
     }
     
