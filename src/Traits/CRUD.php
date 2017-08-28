@@ -143,8 +143,6 @@ trait CRUD{
         $this->templateParameters['table_filter']['field'] = $this->cookies->get(sprintf('table_filter_%s_field', $this->name));
         $this->templateParameters['table_filter']['input'] = $this->cookies->get(sprintf('table_filter_%s_input', $this->name));
         //render
-        
-        
         $this->renderTemplate();
     }
     

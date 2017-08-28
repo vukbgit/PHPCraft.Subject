@@ -43,9 +43,10 @@ trait ORM{
         if(!isset($configuration['subjects'][$this->name]['ORM'])) {
             throw new \Exception(sprintf('missing ORM parameters into %s subject configuration', $this->name));
         } else {
+            //parameters must be set into configuration but they can be null in case there is non need
             $parameters = ['table', 'view', 'primaryKey'];
             foreach($parameters as $parameter) {
-                if(!isset($configuration['subjects'][$this->name]['ORM'][$parameter]) || !$configuration['subjects'][$this->name]['ORM'][$parameter]) {
+                if(!isset($configuration['subjects'][$this->name]['ORM'][$parameter])) {
                     throw new \Exception(sprintf('missing %s ORM parameters into %s subject configuration', $parameter, $this->name));
                 }
             }

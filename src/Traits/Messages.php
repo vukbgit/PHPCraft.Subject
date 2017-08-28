@@ -71,4 +71,15 @@ trait Messages{
     {
         $this->storedMessages = $this->messages->get('cookies');
     }
+    
+    /**
+     * Adds a stored message at runtime
+     **/
+    public function addStoredMessage($category, $message)
+    {
+        if(!isset($this->storedMessages[$category])) {
+            $this->storedMessages[$category] = [];
+        }
+        $this->storedMessages[$category][] = $message;
+    }
 }
