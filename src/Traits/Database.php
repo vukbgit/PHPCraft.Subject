@@ -47,7 +47,8 @@ trait Database{
         if(!isset($configuration['database'])) {
             throw new \Exception('missing database parameters into configuration');
         } else {
-            $this->setDBParameters($configuration['database']['driver'], $configuration['database']['host'], $configuration['database']['username'], $configuration['database']['password'], $configuration['database']['database'], $configuration['database']['schema']);
+            $schema = isset($configuration['database']['schema']) ? $configuration['database']['schema'] : false;
+            $this->setDBParameters($configuration['database']['driver'], $configuration['database']['host'], $configuration['database']['username'], $configuration['database']['password'], $configuration['database']['database'], $schema);
         }
     }
     
