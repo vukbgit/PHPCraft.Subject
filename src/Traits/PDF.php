@@ -77,6 +77,7 @@ trait PDF{
         //load HTML into pdf
         $this->pdf->loadHtml($html);
         //stream
+        $this->httpResponse = $this->httpResponse->withHeader('Content-type', 'application/pdf');
         $this->pdf->stream($PDFName);
     }
 }
