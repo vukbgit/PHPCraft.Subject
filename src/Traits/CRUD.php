@@ -270,7 +270,6 @@ trait CRUD{
                 $this->messages->save('cookies','success',sprintf($this->translations[$this->name]['CRUD']['delete-success'], $this->translations[$this->name]['singular']));
             } catch(\PDOException $exception) {
                 $this->messages->save('cookies', 'danger', $this->handleError($exception));
-                $redirectAction = 'deleteForm/' . $this->extractPrimaryKeyValue($input, 's');
             }
         }
         //redirect
