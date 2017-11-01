@@ -166,6 +166,8 @@ trait CRUD{
         $this->loadTranslations('form', sprintf('private/global/locales/%s/form.ini', LANGUAGE));
         // get record
         $this->templateParameters['record'] = $this->getByPrimaryKey($this->primaryKeyValue);
+        // add global action to be shown into tabs
+        $this->configuration['subjects'][$this->name]['CRUD']['actions']['global']['update-form'] = false;
         // render template
         $this->renderTemplate(sprintf('%s/%s/save-form', AREA, $this->name));
     }

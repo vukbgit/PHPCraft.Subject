@@ -252,7 +252,7 @@ abstract class Subject
             foreach($primaryKey as $field) {
                 //check field into route parameters
                 if(!isset($route['parameters'][$field])) {
-                    throw new \Exception(sprintf('Current route contains subject %s as ancestor but does not contain parameter for primary key field %s', $ancestor['subject'], $field));
+                    throw new \Exception(sprintf('Current route contains subject %s as ancestor but does not contain parameter for primary key field %s', $subject, $field));
                 }
                 //store field value
                 $this->ancestors[$subject][$field] = $route['parameters'][$field];
