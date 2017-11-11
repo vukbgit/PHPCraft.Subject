@@ -73,6 +73,7 @@ trait Template{
     {
         $this->setTemplateParameter('application', APPLICATION);
         $this->setTemplateParameter('area', AREA);
+        $this->setTemplateParameter('environment', ENVIRONMENT);
         $this->setTemplateParameter('subject', $this->name);
         $this->setTemplateParameter('language', LANGUAGE);
         $this->setTemplateParameter('configuration', $this->configuration);
