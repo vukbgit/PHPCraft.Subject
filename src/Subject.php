@@ -99,9 +99,10 @@ abstract class Subject
         $this->httpResponse =& $http->response;
         $this->httpStream =& $http->stream;
         $this->checkTraitsDependencies();
-        $this->processRoute($route);
-        $this->processConfiguration($configuration);        
         $this->subNamespace = $subNamespace;
+        //$this->processRoute($route);
+        $this->route = $route;
+        $this->processConfiguration($configuration);
     }
     
     /**
@@ -177,7 +178,12 @@ abstract class Subject
     public static function getConfiguration($subjectName, $extraPath = false)
     {
         $extraPath = $extraPath ? sprintf('/%s', $extraPath) : '';
-        return require sprintf('private/%s/configurations%s/%s.php', APPLICATION, $extraPath, $subjectName);
+        $path = sprintf('private/%s/configurations%s/%s.php', APPLICATION, $extraPath, $subjectName);
+        if(is_file($path)) {
+            return require $path;
+        } else {
+            r($path);
+        }
     }
     
     /**
@@ -244,11 +250,11 @@ abstract class Subject
      * Processes route
      * @param array $route
      **/
-    protected function processRoute($route)
+    protected function processRoute()
     {
         //ancestors
         //loop route parameters to get ancestors
-        foreach($route['parameters'] as $parameter => $value) {
+        foreach($this->route['parameters'] as $parameter => $value) {
             preg_match('/ancestor[0-9]+/', $parameter, $matches, PREG_OFFSET_CAPTURE);
             if(!empty($matches)) {
                 $this->ancestors[$value] = [];
@@ -256,8 +262,8 @@ abstract class Subject
         }
         //loop ancestors to get primary keys values
         foreach($this->ancestors as $subject => $primaryKey) {
-            //require ancestor configuration
-            $configuration = self::getConfiguration($subject);
+            //require ancestor configuration (supposed to be into same subNamespace)
+            $configuration = self::getConfiguration($subject, strtolower($this->subNamespace));
             //load ancestor translations
             //locale
             if(isset($configuration['locale']) && $configuration['locale']) {
@@ -268,24 +274,24 @@ abstract class Subject
             $primaryKey = is_array($primaryKey) ? $primaryKey : [$primaryKey];
             foreach($primaryKey as $field) {
                 //check field into route parameters
-                if(!isset($route['parameters'][$field])) {
+                if(!isset($this->route['parameters'][$field])) {
                     throw new \Exception(sprintf('Current route contains subject %s as ancestor but does not contain parameter for primary key field %s', $subject, $field));
                 }
                 //store field value
-                $this->ancestors[$subject][$field] = $route['parameters'][$field];
+                $this->ancestors[$subject][$field] = $this->route['parameters'][$field];
             }
         }
         //subject
-        if(isset($route['properties']['subject'])) {
-            $route['parameters']['subject'] = $route['properties']['subject'];
+        if(isset($this->route['properties']['subject'])) {
+            $this->route['parameters']['subject'] = $this->route['properties']['subject'];
         }
         //extract action
         //static set action first
-        if(isset($route['properties']['action'])) {
-            $this->action = $route['properties']['action'];
+        if(isset($this->route['properties']['action'])) {
+            $this->action = $this->route['properties']['action'];
         //action into URL otherwise
-        } else if(isset($route['parameters']['action'])) {
-            $this->action = $route['parameters']['action'];
+        } else if(isset($this->route['parameters']['action'])) {
+            $this->action = $this->route['parameters']['action'];
         }
         //traits
         $traits = $this->getUsedTraits();
@@ -293,11 +299,11 @@ abstract class Subject
         foreach($traits as $trait) {
             $methodName = 'processRouteTrait' . $trait;
             if($reflection->hasMethod($methodName)) {
-                $this->$methodName($route);
+                $this->$methodName($this->route);
             }
         }
         //store
-        $this->route = $route;
+        $this->route = $this->route;
     }
     
     /**
@@ -529,14 +535,15 @@ abstract class Subject
      **/
     public function execAction()
     {
-        //no action defined
-        if(!$this->action) {
-            throw new \Exception(sprintf('no action defined for subject %s', $this->name));
-        }
         //exec method
         try {
             $this->checkTraitsInjections();
             $this->traitsInit();
+            $this->processRoute();
+            //no action defined
+            if(!$this->action) {
+                throw new \Exception(sprintf('no action defined for subject %s', $this->name));
+            }
             $this->{'exec'.$this->sanitizeAction($this->action)}();
         } catch(Exception $exception) {
         //no method defined
