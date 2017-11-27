@@ -61,6 +61,11 @@ abstract class Subject
     protected $action = false;
     
     /**
+    * sub portion of namespace for the subject, used also for sub-folder in configurations, procedure, templates, locales
+    **/
+    protected $subNamespace;
+    
+    /**
     * Subject ancestors in current route, each is an array:
     *           [subject=>SUBJECT, primaryKey[FIELD1=>VALUE1,...]]
     **/
@@ -80,12 +85,14 @@ abstract class Subject
      *          ->stream Psr\Http\Message\StreamInterface HTTP stream handler instance
      * @param array $configuration global configuration array, with application, areas and subject(s) elements
      * @param array $route route array with static properties ad URL extracted parameters
+     * @param string $subNamespace used for class and subject sub-folder into area
      **/
     protected function __construct(
         $name,
         &$http,
         &$configuration = array(),
-        $route = array()
+        $route = array(),
+        $subNamespace = false
     ) {
         $this->name = $name;
         $this->httpRequest =& $http->request;
@@ -94,6 +101,7 @@ abstract class Subject
         $this->checkTraitsDependencies();
         $this->processRoute($route);
         $this->processConfiguration($configuration);        
+        $this->subNamespace = $subNamespace;
     }
     
     /**
@@ -114,10 +122,15 @@ abstract class Subject
     /**
      * build class name
      * @param string $subjectName of the subject
+     * @param string $subNamespace
      **/
-    protected static function buildClassName($subjectName)
+    protected static function buildClassName($subjectName, $subNamespace = false)
     {
-        return sprintf('%s\%s', APPLICATION_NAMESPACE, str_replace('-', '', ucwords($subjectName, '-')));
+        $nameSpace = APPLICATION_NAMESPACE;
+        if($subNamespace) {
+            $nameSpace .= sprintf('\%s', $subNamespace);
+        }
+        return sprintf('%s\%s', $nameSpace, str_replace('-', '', ucwords($subjectName, '-')));
     }
     
     /**
@@ -129,18 +142,20 @@ abstract class Subject
      *          ->stream Psr\Http\Message\StreamInterface HTTP stream handler instance
      * @param array $configuration global configuration array, with application, areas and subject(s) elements
      * @param array $route route array with static properties ad URL extracted parameters
+     * @param string $subNamespace use for subject class and configuration path
      **/
-    public static function factory($subjectName, &$http, &$configuration = array(), $route = array())
+    public static function factory($subjectName, &$http, &$configuration = array(), $route = array(), $subNamespace = false)
     {
-        $subjectNameClass = self::buildClassName($subjectName);
+        $subjectNameClass = self::buildClassName($subjectName, $subNamespace);
         //load subject configuration
-        $configuration['subjects'][$subjectName] = self::getConfiguration($subjectName);
+        $configuration['subjects'][$subjectName] = self::getConfiguration($subjectName, strtolower($subNamespace));
         //instance subject
         return new $subjectNameClass(
             $subjectName,
             $http,
             $configuration,
-            $route
+            $route,
+            $subNamespace
         );
     }
     
@@ -156,11 +171,13 @@ abstract class Subject
     /**
      * Gets a subject configuration
      * @param string $subjectName
+     * @param string $extraPath
      * @return array subject configuration
      **/
-    public static function getConfiguration($subjectName)
+    public static function getConfiguration($subjectName, $extraPath = false)
     {
-        return require sprintf('private/%s/configurations/%s.php', APPLICATION, $subjectName);
+        $extraPath = $extraPath ? sprintf('/%s', $extraPath) : '';
+        return require sprintf('private/%s/configurations%s/%s.php', APPLICATION, $extraPath, $subjectName);
     }
     
     /**

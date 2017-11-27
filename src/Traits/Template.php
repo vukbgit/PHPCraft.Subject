@@ -138,7 +138,11 @@ trait Template{
             throw new \Exception('template engine not injected');
         }
         if(!$path) {
-            $path = sprintf('%s/%s/%s', AREA, $this->name, $this->action);
+            if($this->subNamespace) {
+                $path = sprintf('%s/%s/%s/%s', AREA, strtolower($this->subNamespace), $this->name, $this->action);
+            } else {
+                $path = sprintf('%s/%s/%s', AREA, $this->name, $this->action);
+            }
         }
         $this->setCommonTemplateParameters();
         $html = $this->templateEngine->render($path, $this->templateParameters);
