@@ -171,7 +171,28 @@ trait ORM{
     {
         $this->connectToDB();
         $this->queryBuilder->table($this->table());
-        return $this->queryBuilder->insert($fieldsValues);
+        switch($this->DBParameters['driver']) {
+            case 'pgsql':
+                try{
+                    return $this->queryBuilder->insert($fieldsValues);
+                } catch(\PDOException $exception) {
+                    //
+                    switch($exception->getCode()) {
+                        //object not in prerequisite state: 7 ERROR: lastval is not yet defined in this session triggered when using UUID as primary keys
+                        case '55000':
+                            //pass
+                        break;
+                        default:
+                        //relaunch exception
+                        throw new \PDOException($exception->getMessage(), $exception->getCode());
+                        break;
+                    }
+                }
+            break;
+            default:
+                return $this->queryBuilder->insert($fieldsValues);
+            break;
+        }
     }
     
     /**
