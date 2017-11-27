@@ -154,7 +154,7 @@ trait CRUD{
         // form translations
         $this->loadTranslations('form', sprintf('private/global/locales/%s/form.ini', LANGUAGE));
         // render template
-        $this->renderTemplate(sprintf('%s/%s/save-form', AREA, $this->name));
+        $this->renderTemplate(sprintf('%s/save-form', $this->buildPrivatePathToSubject()));
     }
     
     /**
@@ -169,7 +169,7 @@ trait CRUD{
         // add global action to be shown into tabs
         $this->configuration['subjects'][$this->name]['CRUD']['actions']['global']['update-form'] = false;
         // render template
-        $this->renderTemplate(sprintf('%s/%s/save-form', AREA, $this->name));
+        $this->renderTemplate(sprintf('%s/save-form', $this->buildPrivatePathToSubject()));
     }
     
     /**

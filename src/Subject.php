@@ -324,7 +324,20 @@ abstract class Subject
     }
     
     /**
-     * builds path to area from route
+     * builds path to subject for private folder
+     **/
+    protected function buildPrivatePathToSubject()
+    {
+        if($this->subNamespace) {
+            $path = sprintf('%s/%s/%s', AREA, strtolower($this->subNamespace), $this->name);
+        } else {
+            $path = sprintf('%s/%s', AREA, $this->name);
+        }
+        return $path;
+    }
+    
+    /**
+     * builds path to area from route (for routing/template purposes)
      * @param $language language code to embed into URL when different from currently selected one
      **/
     protected function buildPathToArea($language = false)
@@ -344,7 +357,7 @@ abstract class Subject
     }
     
     /**
-     * builds path to subject from route
+     * builds path to subject from route (for routing/template purposes)
      * @param $language language code to embed into URL when different from currently selected one
      **/
     protected function buildPathToSubject($language = false)
@@ -364,7 +377,7 @@ abstract class Subject
     }
     
     /**
-     * builds path to action from configurated action URL (if any)
+     * builds path to action from configurated action URL (if any) (for routing/template purposes)
      * @param string $action;
      * @param string $configurationUrl;
      **/
