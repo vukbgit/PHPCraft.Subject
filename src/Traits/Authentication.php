@@ -70,6 +70,10 @@ trait Authentication{
      **/
     protected function processConfigurationTraitAuthentication(&$configuration)
     {
+        //check if current area does not require authentication
+        if(isset($configuration['areas'][AREA]['authentication']['notRequired']) && $configuration['areas'][AREA]['authentication']['notRequired'] === true) {
+            return;
+        }
         //services
         if(!isset($configuration['areas'][AREA]['authentication']['services']) || !$configuration['areas'][AREA]['authentication']['services']) {
             throw new \Exception(sprintf('missing autentication "services" parameter into %s configuration', AREA));
