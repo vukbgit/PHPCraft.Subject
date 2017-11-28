@@ -182,7 +182,7 @@ abstract class Subject
         if(is_file($path)) {
             return require $path;
         } else {
-            r($path);
+            throw new \Exception(sprintf('configuration file not found for subject "%s" in path %s', $subjectName, $path));
         }
     }
     
