@@ -302,8 +302,6 @@ abstract class Subject
                 $this->$methodName($this->route);
             }
         }
-        //store
-        $this->route = $this->route;
     }
     
     /**
@@ -538,8 +536,8 @@ abstract class Subject
         //exec method
         try {
             $this->checkTraitsInjections();
-            $this->traitsInit();
             $this->processRoute();
+            $this->traitsInit();
             //no action defined
             if(!$this->action) {
                 throw new \Exception(sprintf('no action defined for subject %s', $this->name));
