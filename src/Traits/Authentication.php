@@ -21,6 +21,11 @@ trait Authentication{
     protected $hasAuthentication = true;
     
     /**
+    * Whether current area requires authentication
+    **/
+    protected $requiresAuthentication = true;
+    
+    /**
     * Auth factory instance
     **/
     protected $authFactory;
@@ -60,8 +65,10 @@ trait Authentication{
      **/
     protected function setTraitInjectionsAuthentication()
     {
-        $injections = ['authFactory'];
-        $this->setTraitInjections('Authentication', $injections);
+        if($this->requiresAuthentication) {
+            $injections = ['authFactory'];
+            $this->setTraitInjections('Authentication', $injections);
+        }
     }
     
     /**
@@ -71,7 +78,8 @@ trait Authentication{
     protected function processConfigurationTraitAuthentication(&$configuration)
     {
         //check if current area does not require authentication
-        if(isset($configuration['areas'][AREA]['authentication']['notRequired']) && $configuration['areas'][AREA]['authentication']['notRequired'] === true) {
+        if(isset($configuration['areas'][AREA]['authentication']['notRequired']) && $configuration['areas'][AREA]['authentication']['notRequired'] == true) {
+            $this->requiresAuthentication = false;
             return;
         }
         //services
@@ -255,6 +263,9 @@ trait Authentication{
      **/
     public function isAuthenticated()
     {
+        if(!$this->requiresAuthentication) {
+            return true;
+        }
         $auth = $this->authFactory->newInstance();
         $logStatus = $auth->getStatus();
         return $logStatus == 'VALID';
