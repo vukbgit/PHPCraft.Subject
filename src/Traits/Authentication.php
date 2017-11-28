@@ -276,6 +276,9 @@ trait Authentication{
      **/
     private function getUserData()
     {
+        if(!$this->requiresAuthentication) {
+            return false;
+        }
         $auth = $this->authFactory->newInstance();
         return null !== $auth->getUserData() ? array_merge(['username' => $auth->getUserName()], $auth->getUserData()) : false;
     }
