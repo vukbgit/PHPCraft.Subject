@@ -181,6 +181,7 @@ trait ORM{
                         //object not in prerequisite state: 7 ERROR: lastval is not yet defined in this session triggered when using UUID as primary keys
                         case '55000':
                             //pass
+                            return true;
                         break;
                         default:
                         //relaunch exception
