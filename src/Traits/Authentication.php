@@ -402,6 +402,8 @@ trait Authentication{
      **/
     private function buildPasswordSQL($password) {
         $this->connectToDb();
-        return $this->queryBuilder->raw(sprintf($this->dbPasswordFunctions[$this->DBParameters['driver']], $password, "GEN_SALT('md5')"));
+        $method = sprintf('buildPasswordSQL%s', ucfirst($this->DBParameters['driver']));
+        //return $this->queryBuilder->raw(sprintf($this->dbPasswordFunctions[$this->DBParameters['driver']], $password, "GEN_SALT('md5')"));
+        return $this->$method($password);
     }
 }

@@ -147,12 +147,21 @@ trait CRUD{
     }
     
     /**
+     * Gets values for save forms, to be overridden by derived class
+     */
+    protected function getSaveFormValues()
+    {
+    }
+    
+    /**
      * Displays insert form
      */
     protected function execInsertForm()
     {
         // form translations
         $this->loadTranslations('form', sprintf('private/global/locales/%s/form.ini', LANGUAGE));
+        //get values
+        $this->getSaveFormValues();
         // render template
         $this->renderTemplate(sprintf('%s/save-form', $this->buildPrivatePathToSubject()));
     }
@@ -168,6 +177,8 @@ trait CRUD{
         $this->templateParameters['record'] = $this->getByPrimaryKey($this->primaryKeyValue);
         // add global action to be shown into tabs
         $this->configuration['subjects'][$this->name]['CRUD']['actions']['global']['update-form'] = false;
+        //get values
+        $this->getSaveFormValues();
         // render template
         $this->renderTemplate(sprintf('%s/save-form', $this->buildPrivatePathToSubject()));
     }
