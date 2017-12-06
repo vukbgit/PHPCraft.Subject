@@ -130,7 +130,7 @@ trait CRUD{
         //check if parent primary key is into route
         if(!empty($this->ancestors)) {
             end($this->ancestors);
-            $parentPrimaryKey = current($this->ancestors);
+            $parentPrimaryKey = current($this->ancestors)['primaryKeyValues'];
         } else {
             $parentPrimaryKey = [];
         }

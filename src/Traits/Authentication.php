@@ -406,4 +406,13 @@ trait Authentication{
         //return $this->queryBuilder->raw(sprintf($this->dbPasswordFunctions[$this->DBParameters['driver']], $password, "GEN_SALT('md5')"));
         return $this->$method($password);
     }
+    
+    /**
+     * Generates password for insert MySQL query
+     * @param string $password
+     * @return string sql code for storing password
+     **/
+    private function buildPasswordSQLMysql($password) {
+        return sprintf("SHA2('%s', 224)", $password);
+    }
 }

@@ -149,7 +149,9 @@ abstract class Subject
     {
         $subjectNameClass = self::buildClassName($subjectName, $subNamespace);
         //load subject configuration
-        $configuration['subjects'][$subjectName] = self::getConfiguration($subjectName, strtolower($subNamespace));
+        if(!isset($configuration['subjects'][$subjectName])) {
+            $configuration['subjects'][$subjectName] = self::getConfiguration($subjectName, strtolower($subNamespace));
+        }
         //instance subject
         return new $subjectNameClass(
             $subjectName,
@@ -264,6 +266,11 @@ abstract class Subject
         foreach($this->ancestors as $subject => $primaryKey) {
             //require ancestor configuration (supposed to be into same subNamespace)
             $configuration = self::getConfiguration($subject, strtolower($this->subNamespace));
+            //store configuration
+            if(!isset($this->configuration['subjects'][$subject])) {
+                $this->configuration['subjects'][$subject] = $configuration;
+            }
+            //store
             //load ancestor translations
             //locale
             if(isset($configuration['locale']) && $configuration['locale']) {
@@ -272,13 +279,24 @@ abstract class Subject
             //loop primary key values
             $primaryKey = $configuration['ORM']['primaryKey'];
             $primaryKey = is_array($primaryKey) ? $primaryKey : [$primaryKey];
+            $this->ancestors[$subject]['primaryKeyValues'] = [];
             foreach($primaryKey as $field) {
                 //check field into route parameters
                 if(!isset($this->route['parameters'][$field])) {
                     throw new \Exception(sprintf('Current route contains subject %s as ancestor but does not contain parameter for primary key field %s', $subject, $field));
                 }
                 //store field value
-                $this->ancestors[$subject][$field] = $this->route['parameters'][$field];
+                $this->ancestors[$subject]['primaryKeyValues'][$field] = $this->route['parameters'][$field];
+            }
+            //get ancestor record
+            if(!empty($this->ancestors[$subject]['primaryKeyValues']) && isset($configuration['ORM']['descFields'])) {
+                $this->connectToDb();
+                $this->queryBuilder
+                ->table($configuration['ORM']['view']);
+                foreach($this->ancestors[$subject]['primaryKeyValues'] as $field => $value) {
+                    $this->queryBuilder->where($field, $value);
+                }
+                $this->ancestors[$subject]['record'] = current($this->queryBuilder->get());
             }
         }
         //subject
@@ -369,9 +387,9 @@ abstract class Subject
         //area
         $path = $this->buildPathToArea($language);
         //ancestors
-        foreach((array) $this->ancestors as $ancestor => $primaryKeyValues) {
+        foreach((array) $this->ancestors as $ancestor => $properties) {
             $path[] = $ancestor;
-            $path[] = implode('|', array_values($primaryKeyValues));
+            $path[] = implode('|', array_values($properties['primaryKeyValues']));
         }
         //subject
         if(isset($this->route['parameters']['subject'])) {
@@ -410,10 +428,10 @@ abstract class Subject
     protected function buildPathToAncestor($lastAncestor)
     {
         $path = $this->buildPathToArea();
-        foreach((array) $this->ancestors as $ancestor => $primaryKeyValues) {
+        foreach((array) $this->ancestors as $ancestor => $properties) {
             $path[] = $ancestor;
             if($ancestor != $lastAncestor) {
-                $path[] = implode('|', array_values($primaryKeyValues));
+                $path[] = implode('|', array_values($properties['primaryKeyValues']));
             } else {
                 $path[] = 'list';
                 break;
