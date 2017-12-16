@@ -291,9 +291,11 @@ abstract class Subject
             }
             //get ancestor record
             if(!empty($this->ancestors[$subject]['primaryKeyValues']) && isset($configuration['ORM']['descFields'])) {
+                $schema = isset($configuration['ORM']['schema']) ? sprintf('%s.', $configuration['ORM']['schema']) : null;
+                $view = sprintf('%s%s', $schema, $configuration['ORM']['view']);
                 $this->connectToDb();
                 $this->queryBuilder
-                ->table($configuration['ORM']['view']);
+                ->table($view);
                 foreach($this->ancestors[$subject]['primaryKeyValues'] as $field => $value) {
                     $this->queryBuilder->where($field, $value);
                 }
