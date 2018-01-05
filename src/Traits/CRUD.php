@@ -29,7 +29,7 @@ trait CRUD{
      **/
     public function setTraitDependenciesCRUD()
     {
-        $this->setTraitDependencies('CRUD', ['ORM', 'SideMenu', 'Messages']);
+        $this->setTraitDependencies('CRUD', ['ORM', 'Messages']);
     }
     
     /**
