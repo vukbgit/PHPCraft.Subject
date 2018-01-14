@@ -103,12 +103,12 @@ trait Authentication{
                     throw new \Exception(sprintf('missing autentication "roleIdProperty" parameter into %s configuration', AREA));
                 }
                 //check sub-arrays
-                $subArrays = ['subjects', 'roles', 'permissions', 'subject_role_permission'];
+                /*$subArrays = ['subjects', 'roles', 'permissions', 'subject_role_permission'];
                 foreach($subArrays as $subArray) {
                     if(!isset($configuration['areas'][AREA]['authentication']['permissions'][$subArray]) || empty($configuration['areas'][AREA]['authentication']['permissions'][$subArray])) {
                         throw new \Exception(sprintf('missing autentication permissions "%s" parameter into %s configuration', $subArray, AREA));
                     }
-                }
+                }*/
             }
         }
     }
@@ -373,6 +373,22 @@ trait Authentication{
     {
         $permissions = $this->getUserPermissions();
         return isset($permissions[$subject]) && !empty($permissions[$subject]);
+    }
+    
+    /**
+     * Checks if current user has at least one permission for a subject among a set of given permissions
+     * @param string $subject
+     * @param array $permissions
+     * @return boolean
+     **/
+    private function hasSubjectPermissions($subject, $permissions)
+    {
+        foreach((array) $permissions as $permission) {
+            if($this->hasPermission($subject, $permission)) {
+                return true;
+            }
+        }
+        return false;
     }
     
     /**
