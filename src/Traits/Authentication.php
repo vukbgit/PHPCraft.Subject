@@ -348,6 +348,9 @@ trait Authentication{
      **/
     protected function getUserPermissions()
     {
+        if(!$this->isAuthenticated()) {
+            return false;
+        }
         $userData = $this->getUserData();
         return $userData['subjects_permissions'];
     }

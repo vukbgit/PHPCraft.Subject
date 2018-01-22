@@ -29,7 +29,7 @@ trait CRUD{
      **/
     public function setTraitDependenciesCRUD()
     {
-        $this->setTraitDependencies('CRUD', ['ORM', 'Messages']);
+        $this->setTraitDependencies('CRUD', ['Messages']);
     }
     
     /**
@@ -76,13 +76,15 @@ trait CRUD{
                 $this->configuration['subjects'][$this->name]['CRUD']['actions']['global'][$action]['url'] = $this->buildPathToAction($action, $url);
             }
         }
-        //check primary key value(s)
-        foreach($this->ORMParameters['primaryKey'] as $field) {
-            if(isset($this->route['parameters'][$field])) {
-                $this->primaryKeyValue[$field] = $this->route['parameters'][$field];
+        if($this->hasORM) {
+            //check primary key value(s)
+            foreach($this->ORMParameters['primaryKey'] as $field) {
+                if(isset($this->route['parameters'][$field])) {
+                    $this->primaryKeyValue[$field] = $this->route['parameters'][$field];
+                }
             }
+            $this->setTemplateParameter('primaryKeyValue', $this->primaryKeyValue);
         }
-        $this->setTemplateParameter('primaryKeyValue', $this->primaryKeyValue);
     }
     
     /**
@@ -249,7 +251,7 @@ trait CRUD{
             //extract primary key value
             $primaryKeyValue = $this->extractPrimaryKeyValue($input, 'a');
             try{
-                //ORM insert
+                //ORM update
                 $this->purgePrimaryKeyValue($input);
                 if($this->update($primaryKeyValue, $input)) {
                     $this->messages->save('cookies','success',sprintf($this->translations[$this->name]['CRUD']['update-success'], $this->translations[$this->name]['singular']));
@@ -280,7 +282,7 @@ trait CRUD{
             //extract primary key value
             $primaryKeyValue = $this->extractPrimaryKeyValue($input, 'a');
             try{
-                //ORM insert
+                //ORM delete
                 $this->delete($primaryKeyValue);
                 $this->messages->save('cookies','success',sprintf($this->translations[$this->name]['CRUD']['delete-success'], $this->translations[$this->name]['singular']));
             } catch(\PDOException $exception) {

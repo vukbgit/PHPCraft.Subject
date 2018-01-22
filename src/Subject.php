@@ -61,7 +61,8 @@ abstract class Subject
     protected $action = false;
     
     /**
-    * sub portion of namespace for the subject, used also for sub-folder in configurations, procedure, templates, locales
+    * sub portion of namespace for the subject, used also (lowercased) for sub-folder in configurations, procedure, templates, locales
+    * hyphens (-) are stripped for namespace and kept for other paths
     **/
     protected $subNamespace;
     
@@ -123,13 +124,13 @@ abstract class Subject
     /**
      * build class name
      * @param string $subjectName of the subject
-     * @param string $subNamespace
+     * @param string $subNamespace hyphens (-) are stripped
      **/
     protected static function buildClassName($subjectName, $subNamespace = false)
     {
         $nameSpace = APPLICATION_NAMESPACE;
         if($subNamespace) {
-            $nameSpace .= sprintf('\%s', $subNamespace);
+            $nameSpace .= sprintf('\%s', str_replace('-', '', $subNamespace));
         }
         return sprintf('%s\%s', $nameSpace, str_replace('-', '', ucwords($subjectName, '-')));
     }
@@ -143,7 +144,7 @@ abstract class Subject
      *          ->stream Psr\Http\Message\StreamInterface HTTP stream handler instance
      * @param array $configuration global configuration array, with application, areas and subject(s) elements
      * @param array $route route array with static properties ad URL extracted parameters
-     * @param string $subNamespace use for subject class and configuration path
+     * @param string $subNamespace used also for subject class and configuration path
      **/
     public static function factory($subjectName, &$http, &$configuration = array(), $route = array(), $subNamespace = false)
     {
