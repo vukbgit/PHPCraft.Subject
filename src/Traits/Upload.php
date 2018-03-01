@@ -50,7 +50,7 @@ trait Upload{
      **/
     public function setTraitDependenciesUpload()
     {
-        $this->setTraitDependencies('Upload', ['Database', 'Template']);
+        $this->setTraitDependencies('Upload', ['Template']);
     }
     
     /**
