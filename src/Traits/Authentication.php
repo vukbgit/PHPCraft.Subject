@@ -141,10 +141,6 @@ trait Authentication{
             //get user role(s)
             
         }
-        //send user data to template
-        if($this->hasTemplate  && $this->isAuthenticated()) {
-            $this->setTemplateParameter('userData', $this->getUserData());
-        }
     }
     
     /**

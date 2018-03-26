@@ -84,6 +84,10 @@ trait Template{
         if($this->hasMessages && !empty($this->storedMessages)) {
             $this->setTemplateParameter('messages', $this->storedMessages);
         }
+        //send user data to template
+        if($this->hasAuthentication && $this->isAuthenticated()) {
+            $this->setTemplateParameter('userData', $this->getUserData());
+        }
     }
     
     /**
