@@ -330,7 +330,7 @@ abstract class Subject
      * Processes configuration, checks for mandatory parameters, extracts found parameters
      * @param array $configuration
      **/
-    protected function processConfiguration($configuration)
+    protected function processConfiguration(&$configuration)
     {
         //locale
         if(isset($configuration['subjects'][$this->name]['locale']) && $configuration['subjects'][$this->name]['locale']) {
@@ -346,7 +346,7 @@ abstract class Subject
             }
         }
         //store
-        $this->configuration = $configuration;
+        $this->configuration =& $configuration;
     }
     
     /**
