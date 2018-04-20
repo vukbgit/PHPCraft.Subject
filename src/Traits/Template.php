@@ -120,6 +120,10 @@ trait Template{
         $this->templateEngine->addFunction('pathToAncestor', function ($ancestor) {
             return implode('/', $this->buildPathToAncestor($ancestor));
         });
+        //custom path to action
+        $this->templateEngine->addFunction('customActionUrl', function ($record, $url) {
+            return $this->buildCustomActionUrl($record, $url);
+        });
         //authentication functions
         if($this->hasAuthentication) {
             $this->templateEngine->addFunction('hasPermission', function ($subject, $permission) {
@@ -129,6 +133,28 @@ trait Template{
                 return $this->hasSubjectPermission($subject);
             });
         }
+    }
+    
+    /**
+     * Builds a custom path to an action using a record and a url with fields related placeholders
+     * @param object $record
+     * @param string $url: with field palceholders in the form of {field-name}
+     * @return string HTML content
+     **/
+    protected function buildCustomActionUrl($record, $url)
+    {
+        $pattern = '/\{([a-zA-z_]+)\}/';
+        $resultUrl = preg_replace_callback(
+            $pattern,
+            function($matches) use($record){
+                $fieldName = $matches[1];
+                if(isset($record->$fieldName)) {
+                    return $record->$fieldName;
+                }
+                
+            },
+            $url);
+        return $resultUrl;
     }
     
     /**
