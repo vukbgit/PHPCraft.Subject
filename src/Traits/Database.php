@@ -48,7 +48,10 @@ trait Database{
             throw new \Exception('missing database parameters into configuration');
         } else {
             $schema = isset($configuration['database']['schema']) ? $configuration['database']['schema'] : false;
-            $this->setDBParameters($configuration['database']['driver'], $configuration['database']['host'], $configuration['database']['username'], $configuration['database']['password'], $configuration['database']['database'], $schema);
+            //look for db login data into default $configuration['database'] position, otherwise they should be set at runtime using setDBParameters method (i.e. for ENVIRONMENT dependent configuration)
+            if(isset($configuration['database']['driver']) && isset($configuration['database']['host']) && isset($configuration['database']['username']) && isset($configuration['database']['password']) && isset($configuration['database']['database'])) {
+                $this->setDBParameters($configuration['database']['driver'], $configuration['database']['host'], $configuration['database']['username'], $configuration['database']['password'], $configuration['database']['database'], $schema);
+            }
         }
     }
     
@@ -73,7 +76,7 @@ trait Database{
      * @param string $collation
      * @param array $options
      **/
-    protected function setDBParameters($driver, $host, $username, $password, $database, $schema = false, $charset = 'utf8', $collation = 'utf8_unicode_ci', $options = array())
+    public function setDBParameters($driver, $host, $username, $password, $database, $schema = false, $charset = 'utf8', $collation = 'utf8_unicode_ci', $options = array())
     {
         $this->DBParameters = [
             'driver' => $driver,
