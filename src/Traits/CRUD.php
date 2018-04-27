@@ -318,4 +318,87 @@ trait CRUD{
         }
         //redirection to list action is performed by javascript into jquery post() success function
     }
+    
+    /**
+     * Moves record position up
+     */
+    protected function execMoveUp()
+    {
+        $this->move('up');
+    }
+    
+    /**
+     * Moves record position down
+     */
+    protected function execMoveDown()
+    {
+        $this->move('down');
+    }
+    
+    /**
+     * Moves record
+     * @param string $direction up|down
+     */
+    private function move($direction)
+    {
+        //check position field
+        if(!isset($this->configuration['subjects'][$this->name]['CRUD']['positionField'])) {
+            throw new \Exception(sprintf('Missing CRUD "positionField" parameter into %s configuration', $this->name));
+        } else {
+            $positionField = $this->configuration['subjects'][$this->name]['CRUD']['positionField'];
+        }
+        //get selected record
+        $selectedRecord = $this->getByPrimaryKey($this->primaryKeyValue);
+        $primaryKeyField = $this->configuration['subjects'][$this->name]['ORM']['primaryKey'];
+        $selectedRecordPrimaryKeyValue = $this->primaryKeyValue[$primaryKeyField];
+        $selectedRecordPosition = (int) $selectedRecord->posizione;
+        //get neighbour
+        if(!empty($this->ancestors)) {
+            end($this->ancestors);
+            $parentPrimaryKey = current($this->ancestors)['primaryKeyValues'];
+        } else {
+            $parentPrimaryKey = [];
+        }
+        $this->queryBuilder
+            ->table($this->view());
+        //parent
+        if(!empty($parentPrimaryKey)) {
+            $this->queryBuilder
+                ->where(current(array_keys($parentPrimaryKey)), current(array_values($parentPrimaryKey)));
+        }
+        //different from selected
+        $this->queryBuilder
+                ->where($primaryKeyField, '!=', $selectedRecordPrimaryKeyValue);
+        switch($direction) {
+            case 'down':
+                $this->queryBuilder
+                    ->where($positionField, '>=', $selectedRecord->$positionField)
+                    ->orderBy($positionField, 'ASC');
+            break;
+            case 'up':
+                $this->queryBuilder
+                    ->where($positionField, '<=', $selectedRecord->$positionField)
+                    ->orderBy($positionField, 'DESC');
+            break;
+        }
+        $neighbour = $this->queryBuilder
+            ->limit(1)
+            ->first();
+        if($neighbour) {
+            $neighbourPosition = (int) $neighbour->posizione;
+            if($neighbourPosition == $selectedRecordPosition) {
+                switch($direction) {
+                    case 'down':
+                        $neighbourPosition++;
+                    break;
+                    case 'up':
+                        $selectedRecordPosition++;
+                    break;
+                }
+            }
+            $this->update($selectedRecordPrimaryKeyValue, [$positionField => $neighbourPosition]);
+            $this->update($neighbour->$primaryKeyField, [$positionField => $selectedRecordPosition]);
+        }
+        $this->httpResponse = $this->httpResponse->withHeader('Location', $_SERVER['HTTP_REFERER']);
+    }
 }
