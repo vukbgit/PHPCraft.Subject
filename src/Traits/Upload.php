@@ -168,7 +168,9 @@ trait Upload{
         $outputs = $this->uploadFields[$this->uploadedField]->getOutputsFiles();
         foreach($this->uploadFieldsDefinitions[$this->uploadedField]['outputs'] as $output => $outputDefinition) {
             if(isset($outputDefinition['processor'])) {
-                $this->{$outputDefinition['processor']}($outputs[$output]['path']);
+                //added also whole output object as second parameter to allow processor method to use custom configuration properties
+                //left path as first parameter for backward compatibility
+                $this->{$outputDefinition['processor']}($outputs[$output]['path'], $outputDefinition);
             }
         }
     }
