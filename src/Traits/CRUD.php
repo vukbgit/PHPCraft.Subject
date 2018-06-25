@@ -156,6 +156,31 @@ trait CRUD{
     }
     
     /**
+     * Gets multilanguage values
+     */
+    protected function getMultiLanguageValues()
+    {
+        //skip if multilanguage is not configured
+        if(!isset($this->configuration['subjects'][$this->name]['CRUD']['multiLanguage'])) {
+            return;
+        }
+        $view = $this->view() . $this->configuration['subjects'][$this->name]['CRUD']['multiLanguage']['suffix'];
+        $this->queryBuilder->table($view);
+        $this->primaryKeyWhere($this->primaryKeyValue);
+        $multiLanguageRecords = $this->queryBuilder->get();
+        foreach((array) $multiLanguageRecords as $multiLanguageRecord) {
+            $languageCode = $multiLanguageRecord->{$this->configuration['subjects'][$this->name]['CRUD']['multiLanguage']['languagePK']};
+            foreach(array_keys($this->configuration['subjects'][$this->name]['CRUD']['multiLanguage']['inputFields']) as $field) {
+                //init field
+                if(!isset($this->templateParameters['record']->$field)) {
+                    $this->templateParameters['record']->$field = [];
+                }
+                $this->templateParameters['record']->$field[$languageCode] = $multiLanguageRecord->$field;
+            }
+        }
+    }
+    
+    /**
      * Displays insert form
      */
     protected function execInsertForm()
@@ -177,6 +202,8 @@ trait CRUD{
         $this->loadTranslations('form', sprintf('private/global/locales/%s/form.ini', LANGUAGE));
         // get record
         $this->templateParameters['record'] = $this->getByPrimaryKey($this->primaryKeyValue);
+        //get multilanguage values
+        $this->getMultiLanguageValues();
         // add global action to be shown into tabs
         $this->configuration['subjects'][$this->name]['CRUD']['actions']['global']['update-form'] = false;
         //get values
@@ -209,6 +236,48 @@ trait CRUD{
     }
     
     /**
+     * Processes multilanguage save input before save query, to be overridden by derived class in case of input processing needed
+     * @return null | array $input
+     */
+    protected function processSaveInputMultilanguage()
+    {
+        //skip if multilanguage is not configured
+        if(!isset($this->configuration['subjects'][$this->name]['CRUD']['multiLanguage'])) {
+            return null;
+        }
+        $fieldsDefinitions = $this->configuration['subjects'][$this->name]['CRUD']['multiLanguage']['inputFields'];
+        $fieldsDefinitionsAsArray = [];
+        foreach($fieldsDefinitions as $fieldName => $fieldDefinition) {
+            if(!is_array($fieldDefinition)) {
+                $filter = $fieldDefinition;
+                $flags = FILTER_REQUIRE_ARRAY;
+            } else {
+                $filter = $fieldDefinition['filter'];
+                $flags = FILTER_REQUIRE_ARRAY;
+                if(isset($fieldDefinition['flags'])) {
+                    $flags = $flags | $fieldDefinition['flags'];
+                }
+            }
+            $fieldsDefinitionsAsArray[$fieldName] = [
+                'filter' => $filter,
+                'flags' => $flags
+            ];
+        }
+        $inputByField = filter_input_array(INPUT_POST, $fieldsDefinitionsAsArray);
+        $inputByLanguage = [];
+        foreach($inputByField as $field => $langaugesValues) {
+            foreach($langaugesValues as $languageCode => $value) {
+                //init language
+                if(!isset($inputByLanguage[$languageCode])) {
+                    $inputByLanguage[$languageCode] = [];
+                }
+                $inputByLanguage[$languageCode][$field] = $value;
+            }
+        }
+        return $inputByLanguage;
+    }
+    
+    /**
      * Insert record action
      * @param string $redirectAction
      */
@@ -218,11 +287,15 @@ trait CRUD{
         $this->loadTranslations('database', sprintf('private/global/locales/%s/database.ini', LANGUAGE));
         //validate and extract input
         $input = $this->processSaveInput(filter_input_array(INPUT_POST, $this->configuration['subjects'][$this->name]['CRUD']['inputFields']));
+        //get multilanguage input
+        $inputMultilanguage = $this->processSaveInputMultilanguage();
         if($input) {
             try{
                 //ORM update
                 $this->purgePrimaryKeyValue($input);
-                if($this->insert($input)) {
+                $primaryKeyValue = $this->insert($input);
+                if($primaryKeyValue) {
+                    $this->insertMultilanguage($primaryKeyValue, $inputMultilanguage);
                     $this->messages->save('cookies','success',sprintf($this->translations[$this->name]['CRUD']['insert-success'], $this->translations[$this->name]['singular']));
                 }
             } catch(\PDOException $exception) {
@@ -247,6 +320,8 @@ trait CRUD{
         $this->loadTranslations('database', sprintf('private/global/locales/%s/database.ini', LANGUAGE));
         //validate and extract input
         $input = $this->processSaveInput(filter_input_array(INPUT_POST, $this->configuration['subjects'][$this->name]['CRUD']['inputFields']));
+        //get multilanguage input
+        $inputMultilanguage = $this->processSaveInputMultilanguage();
         if($input) {
             //extract primary key value
             $primaryKeyValue = $this->extractPrimaryKeyValue($input, 'a');
@@ -254,6 +329,7 @@ trait CRUD{
                 //ORM update
                 $this->purgePrimaryKeyValue($input);
                 if($this->update($primaryKeyValue, $input)) {
+                    $this->updateMultilanguage($primaryKeyValue, $inputMultilanguage);
                     $this->messages->save('cookies','success',sprintf($this->translations[$this->name]['CRUD']['update-success'], $this->translations[$this->name]['singular']));
                 }
             } catch(\PDOException $exception) {
@@ -266,6 +342,48 @@ trait CRUD{
         //redirect
         $redirectAction = $redirectAction ? $redirectAction : 'list';
         $this->httpResponse = $this->httpResponse->withHeader('Location', $redirectAction);
+    }
+    
+    /**
+     * Updates multilanguage fields
+     * @param array $primaryKeyValue as plain value
+     * @param array $input indexed by language code and then by field name
+     */
+    private function insertMultilanguage($primaryKeyValue, $input)
+    {
+        //skip if multilanguage is not configured
+        if(!isset($this->configuration['subjects'][$this->name]['CRUD']['multiLanguage'])) {
+            return null;
+        }
+        $values = [
+            $this->configuration['subjects'][$this->name]['ORM']['primaryKey'] => $primaryKeyValue
+        ];
+        foreach((array) $input as $languageCode => $fieldsValues) {
+            $table = $this->table() . $this->configuration['subjects'][$this->name]['CRUD']['multiLanguage']['suffix'];
+            $this->queryBuilder->table($table);
+            $values[$this->configuration['subjects'][$this->name]['CRUD']['multiLanguage']['languagePK']] = $languageCode;
+            $this->queryBuilder->insert(array_merge($values, $fieldsValues));
+        }
+    }
+    
+    /**
+     * Updates multilanguage fields
+     * @param array $primaryKeyValue as indexed array
+     * @param array $input indexed by language code and then by field name
+     */
+    private function updateMultilanguage($primaryKeyValue, $input)
+    {
+        //skip if multilanguage is not configured
+        if(!isset($this->configuration['subjects'][$this->name]['CRUD']['multiLanguage'])) {
+            return null;
+        }
+        foreach((array) $input as $languageCode => $fieldsValues) {
+            $table = $this->table() . $this->configuration['subjects'][$this->name]['CRUD']['multiLanguage']['suffix'];
+            $this->queryBuilder->table($table);
+            $this->primaryKeyWhere($primaryKeyValue);
+            $this->queryBuilder->where($this->configuration['subjects'][$this->name]['CRUD']['multiLanguage']['languagePK'], $languageCode);
+            $this->queryBuilder->update($fieldsValues);
+        }
     }
     
     /**
