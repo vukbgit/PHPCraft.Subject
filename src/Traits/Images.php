@@ -53,4 +53,15 @@ trait Images{
         $this->images->open('Gd',$path);
         $this->images->resize($width, $height);
     }
+    
+    /**
+     * Rotates an image
+     * @param string $path
+     * @param int $angle rotation angle
+     */
+    protected function rotateImage($path, $angle)
+    {
+        $this->images->open('Gd',$path);
+        $this->images->rotate($angle);
+    }
 }
