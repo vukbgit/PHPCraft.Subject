@@ -132,12 +132,20 @@ trait CRUD{
         //check if parent primary key is into route
         if(!empty($this->ancestors)) {
             end($this->ancestors);
-            $parentPrimaryKey = current($this->ancestors)['primaryKeyValues'];
+            $where = current($this->ancestors)['primaryKeyValues'];
         } else {
-            $parentPrimaryKey = [];
+            $where = [];
         }
-        //get records
-        $this->templateParameters['records'] = $this->get($parentPrimaryKey);
+        if(!isset($this->configuration['subjects'][$this->name]['CRUD']['multiLanguage'])) {
+            $records = $this->get($where);
+        } else {
+        //multilanguage: get for currently selected language
+            $view = $this->view() . $this->configuration['subjects'][$this->name]['CRUD']['multiLanguage']['suffix'];
+            $where[$this->configuration['subjects'][$this->name]['CRUD']['multiLanguage']['languagePK']] = LANGUAGE;
+            $this->queryBuilder->table($view);
+            $this->where($where);
+            $records = $this->queryBuilder->get();
+        }
         // form translations
         $this->loadTranslations('list', sprintf('private/global/locales/%s/list.ini', LANGUAGE));
         //get table filter
@@ -145,6 +153,7 @@ trait CRUD{
         $this->templateParameters['table_filter']['field'] = $this->cookies->get(sprintf('table_filter_%s_field', $this->name));
         $this->templateParameters['table_filter']['input'] = $this->cookies->get(sprintf('table_filter_%s_input', $this->name));
         //render
+        $this->setTemplateParameter('records', $records);
         $this->renderTemplate();
     }
     
