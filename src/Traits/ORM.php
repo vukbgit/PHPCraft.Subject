@@ -206,6 +206,10 @@ trait ORM{
      */
     public function update($primaryKeyValue, $fieldsValues)
     {
+//         //in case of empty values do not raise error, it can be a multlilanguage table with only multilanguage fields
+        if(empty($fieldsValues)) {
+            return true;
+        }
         $this->connectToDB();
         $this->queryBuilder->table($this->table());
         $this->primaryKeyWhere($primaryKeyValue);
