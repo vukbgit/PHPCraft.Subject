@@ -87,8 +87,12 @@ trait ORM{
      **/
     public function view()
     {
-        return $this->schema()
+        $view = $this->schema()
              . $this->ORMParameters['view'];
+        if(isset($this->configuration['subjects'][$this->name]['ORM']['multiLanguage'])) {
+            $view .= $this->configuration['subjects'][$this->name]['ORM']['multiLanguage']['suffix'];
+        }
+        return $view;
     }
     
     /**
@@ -127,6 +131,9 @@ trait ORM{
         $this->connectToDB();
         $this->queryBuilder->table($this->view());
         //where
+        if(isset($this->configuration['subjects'][$this->name]['ORM']['multiLanguage'])) {
+            $where[$this->configuration['subjects'][$this->name]['ORM']['multiLanguage']['languagePK']] = LANGUAGE;
+        }
         $this->where($where);
         //order
         foreach($order as $field => $direction) {

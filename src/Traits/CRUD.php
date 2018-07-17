@@ -136,16 +136,7 @@ trait CRUD{
         } else {
             $where = [];
         }
-        if(!isset($this->configuration['subjects'][$this->name]['CRUD']['multiLanguage'])) {
-            $records = $this->get($where);
-        } else {
-        //multilanguage: get for currently selected language
-            $view = $this->view() . $this->configuration['subjects'][$this->name]['CRUD']['multiLanguage']['suffix'];
-            $where[$this->configuration['subjects'][$this->name]['CRUD']['multiLanguage']['languagePK']] = LANGUAGE;
-            $this->queryBuilder->table($view);
-            $this->where($where);
-            $records = $this->queryBuilder->get();
-        }
+        $records = $this->get($where);
         // form translations
         $this->loadTranslations('list', sprintf('private/global/locales/%s/list.ini', LANGUAGE));
         //get table filter
@@ -170,20 +161,16 @@ trait CRUD{
     protected function getMultiLanguageValues()
     {
         //skip if multilanguage is not configured
-        if(!isset($this->configuration['subjects'][$this->name]['CRUD']['multiLanguage'])) {
+        if(!isset($this->configuration['subjects'][$this->name]['ORM']['multiLanguage'])) {
             return;
         }
-        $view = $this->view() . $this->configuration['subjects'][$this->name]['CRUD']['multiLanguage']['suffix'];
-        $this->queryBuilder->table($view);
+        $this->queryBuilder->table($this->view());
         $this->primaryKeyWhere($this->primaryKeyValue);
         $multiLanguageRecords = $this->queryBuilder->get();
-        foreach((array) $multiLanguageRecords as $multiLanguageRecord) {
-            $languageCode = $multiLanguageRecord->{$this->configuration['subjects'][$this->name]['CRUD']['multiLanguage']['languagePK']};
-            foreach(array_keys($this->configuration['subjects'][$this->name]['CRUD']['multiLanguage']['inputFields']) as $field) {
-                //init field
-                if(!isset($this->templateParameters['record']->$field)) {
-                    $this->templateParameters['record']->$field = [];
-                }
+        foreach(array_keys($this->configuration['subjects'][$this->name]['CRUD']['multiLanguage']['inputFields']) as $field) {
+            $this->templateParameters['record']->$field = [];
+            foreach((array) $multiLanguageRecords as $multiLanguageRecord) {
+                $languageCode = $multiLanguageRecord->{$this->configuration['subjects'][$this->name]['ORM']['multiLanguage']['languagePK']};
                 $this->templateParameters['record']->$field[$languageCode] = $multiLanguageRecord->$field;
             }
         }
@@ -251,7 +238,7 @@ trait CRUD{
     protected function processSaveInputMultilanguage()
     {
         //skip if multilanguage is not configured
-        if(!isset($this->configuration['subjects'][$this->name]['CRUD']['multiLanguage'])) {
+        if(!isset($this->configuration['subjects'][$this->name]['ORM']['multiLanguage'])) {
             return null;
         }
         $fieldsDefinitions = $this->configuration['subjects'][$this->name]['CRUD']['multiLanguage']['inputFields'];
@@ -361,16 +348,16 @@ trait CRUD{
     private function insertMultilanguage($primaryKeyValue, $input)
     {
         //skip if multilanguage is not configured
-        if(!isset($this->configuration['subjects'][$this->name]['CRUD']['multiLanguage'])) {
+        if(!isset($this->configuration['subjects'][$this->name]['ORM']['multiLanguage'])) {
             return null;
         }
         $values = [
             $this->configuration['subjects'][$this->name]['ORM']['primaryKey'] => $primaryKeyValue
         ];
         foreach((array) $input as $languageCode => $fieldsValues) {
-            $table = $this->table() . $this->configuration['subjects'][$this->name]['CRUD']['multiLanguage']['suffix'];
+            $table = $this->table() . $this->configuration['subjects'][$this->name]['ORM']['multiLanguage']['suffix'];
             $this->queryBuilder->table($table);
-            $values[$this->configuration['subjects'][$this->name]['CRUD']['multiLanguage']['languagePK']] = $languageCode;
+            $values[$this->configuration['subjects'][$this->name]['ORM']['multiLanguage']['languagePK']] = $languageCode;
             $this->queryBuilder->insert(array_merge($values, $fieldsValues));
         }
     }
@@ -383,14 +370,14 @@ trait CRUD{
     private function updateMultilanguage($primaryKeyValue, $input)
     {
         //skip if multilanguage is not configured
-        if(!isset($this->configuration['subjects'][$this->name]['CRUD']['multiLanguage'])) {
+        if(!isset($this->configuration['subjects'][$this->name]['ORM']['multiLanguage'])) {
             return null;
         }
         foreach((array) $input as $languageCode => $fieldsValues) {
-            $table = $this->table() . $this->configuration['subjects'][$this->name]['CRUD']['multiLanguage']['suffix'];
+            $table = $this->table() . $this->configuration['subjects'][$this->name]['ORM']['multiLanguage']['suffix'];
             $this->queryBuilder->table($table);
             $this->primaryKeyWhere($primaryKeyValue);
-            $this->queryBuilder->where($this->configuration['subjects'][$this->name]['CRUD']['multiLanguage']['languagePK'], $languageCode);
+            $this->queryBuilder->where($this->configuration['subjects'][$this->name]['ORM']['multiLanguage']['languagePK'], $languageCode);
             $this->queryBuilder->update($fieldsValues);
         }
     }
