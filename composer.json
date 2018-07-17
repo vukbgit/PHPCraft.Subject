@@ -18,7 +18,8 @@
         "phpcraft/message": "For inline notifications integration (Messages trait)",
         "phpcraft/template": "For template engine integration (Template trait)",
         "phpcraft/upload": "For upload functionalities (Upload trait)",
-        "cocur/slugify": "to manage slug into URLs"
+        "cocur/slugify": "to manage slug into URLs",
+        "hackzilla/password-generator": "for authentication password generation"
     },
     "autoload": {
         "psr-4" : {
