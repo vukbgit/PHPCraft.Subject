@@ -160,9 +160,9 @@ trait CRUD{
      */
     protected function getMultiLanguageValues()
     {
-        //skip if multilanguage is not configured
-        if(!isset($this->configuration['subjects'][$this->name]['ORM']['multiLanguage'])) {
-            return;
+        //skip if multilanguage fields are not configured
+        if(!isset($this->configuration['subjects'][$this->name]['CRUD']['multiLanguage']['inputFields'])) {
+            return null;
         }
         $this->queryBuilder->table($this->view());
         $this->primaryKeyWhere($this->primaryKeyValue);
@@ -237,8 +237,8 @@ trait CRUD{
      */
     protected function processSaveInputMultilanguage()
     {
-        //skip if multilanguage is not configured
-        if(!isset($this->configuration['subjects'][$this->name]['ORM']['multiLanguage'])) {
+        //skip if multilanguage fields are not configured
+        if(!isset($this->configuration['subjects'][$this->name]['CRUD']['multiLanguage']['inputFields'])) {
             return null;
         }
         $fieldsDefinitions = $this->configuration['subjects'][$this->name]['CRUD']['multiLanguage']['inputFields'];
