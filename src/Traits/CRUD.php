@@ -215,6 +215,8 @@ trait CRUD{
     {
         // get record
         $this->templateParameters['record'] = $this->getByPrimaryKey($this->primaryKeyValue);
+        //get multilanguage values
+        $this->getMultiLanguageValues();
         // add global action to be shown into tabs
         $this->configuration['subjects'][$this->name]['CRUD']['actions']['global']['delete-form'] = false;
         // render template
