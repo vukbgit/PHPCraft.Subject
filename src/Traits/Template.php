@@ -9,28 +9,28 @@
  *      initTrait[trait-name](): performs any task needed by trait BEFORE subject action is performed
  * @author vuk <http://vuk.bg.it>
  */
- 
+
 namespace PHPCraft\Subject\Traits;
 
 use PHPCraft\Template\TemplateInterface;
 
 trait Template{
-    
+
     /**
-    * included trait flag 
+    * included trait flag
     **/
     protected $hasTemplate = true;
-    
+
     /**
     * Template engine instance
     **/
     protected $templateEngine;
-    
+
     /**
     * Parameters passed to template
     **/
     protected $templateParameters = [];
-    
+
     /**
      * Sets trait needed injections
      **/
@@ -38,7 +38,7 @@ trait Template{
     {
         $this->setTraitInjections('Template', ['templateEngine']);
     }
-    
+
     /**
      * Injects template engine instance
      * @param PHPCraft\Template\TemplateInterface $templateEngine template engine instance
@@ -47,7 +47,7 @@ trait Template{
     {
         $this->templateEngine = $templateEngine;
     }
-    
+
     /**
      * Inits trait
      **/
@@ -55,7 +55,7 @@ trait Template{
     {
         $this->buildTemplateFunctions();
     }
-    
+
     /**
      * Sets a template parameter
      * @param string $key;
@@ -65,7 +65,7 @@ trait Template{
     {
         $this->templateParameters[$key] = $value;
     }
-    
+
     /**
      * Sets common template parameters
      **/
@@ -89,43 +89,52 @@ trait Template{
             $this->setTemplateParameter('userData', $this->getUserData());
         }
     }
-    
+
     /**
-     * Sets page title to be displayed into title HTML tag before 
+     * Sets page title to be displayed into title HTML tag before
      * @param string $title;
      **/
     public function setPageTitle($title)
     {
         $this->setTemplateParameter('pageTitle', $title);
     }
-    
+
     /**
      * Builds functions used into templates
      **/
-    protected function buildTemplateFunctions()
+    protected function buildTemplateFunctions($onlyUnregistered = false)
     {
-        //path to area
-        $this->templateEngine->addFunction('pathToArea', function ($language = false) {
-            return implode('/', $this->buildPathToArea($language)) . '/';
-        });
-        //path to subject
-        $this->templateEngine->addFunction('pathToSubject', function ($language = false) {
-            return implode('/', $this->buildPathToSubject($language)) . '/';
-        });
-        //path to action
-        $this->templateEngine->addFunction('pathToAction', function ($action, $configurationUrl = false, $primaryKeyValue = false) {
-            return $this->buildPathToAction($action, $configurationUrl, $primaryKeyValue);
-        });
-        //path to ancestor
-        $this->templateEngine->addFunction('pathToAncestor', function ($ancestor) {
-            return implode('/', $this->buildPathToAncestor($ancestor));
-        });
-        //custom path to action
-        $this->templateEngine->addFunction('customActionUrl', function ($record, $url) {
-            return $this->buildCustomActionUrl($record, $url);
-        });
+        if(!$onlyUnregistered) {
+            //path to area
+            $this->templateEngine->addFunction('pathToArea', function ($language = false) {
+                return implode('/', $this->buildPathToArea($language)) . '/';
+            });
+            //path to subject
+            $this->templateEngine->addFunction('pathToSubject', function ($language = false) {
+                return implode('/', $this->buildPathToSubject($language)) . '/';
+            });
+            //path to action
+            $this->templateEngine->addFunction('pathToAction', function ($action, $configurationUrl = false, $primaryKeyValue = false) {
+                return $this->buildPathToAction($action, $configurationUrl, $primaryKeyValue);
+            });
+            //path to ancestor
+            $this->templateEngine->addFunction('pathToAncestor', function ($ancestor) {
+                return implode('/', $this->buildPathToAncestor($ancestor));
+            });
+            //custom path to action
+            $this->templateEngine->addFunction('customActionUrl', function ($record, $url) {
+                return $this->buildCustomActionUrl($record, $url);
+            });
+        }
+        //crud functions
+        if(($this->hasCRUD && !$onlyUnregistered) || ($onlyUnregistered && !$this->hasCRUD)) {
+            //get primary key value(s)
+            $this->templateEngine->addFunction('extractPrimaryKeyValue', function ($record, $returnAs) {
+                return $this->extractPrimaryKeyValue($record, $returnAs);
+            });
+        }
         //authentication functions
-        if($this->hasAuthentication) {
+        if(($this->hasAuthentication && !$onlyUnregistered) || ($onlyUnregistered && !$this->hasAuthentication)) {
             $this->templateEngine->addFunction('hasPermission', function ($subject, $permission) {
                 return $this->hasPermission($subject, $permission);
             });
@@ -134,7 +143,7 @@ trait Template{
             });
         }
     }
-    
+
     /**
      * Builds a custom path to an action using a record and a url with fields related placeholders
      * @param object $record
@@ -151,12 +160,12 @@ trait Template{
                 if(isset($record->$fieldName)) {
                     return $record->$fieldName;
                 }
-                
+
             },
             $url);
         return $resultUrl;
     }
-    
+
     /**
      * Renders template and writes output to HTTP stream
      * @param string $path;

@@ -9,21 +9,21 @@
  *      initTrait[trait-name](): performs any task needed by trait BEFORE subject action is performed
  * @author vuk <http://vuk.bg.it>
  */
- 
+
 namespace PHPCraft\Subject\Traits;
 
 trait CRUD{
-    
+
     /**
-    * included trait flag 
+    * included trait flag
     **/
     protected $hasCRUD = true;
-    
+
     /**
     * primary key current value(s)
     **/
     protected $primaryKeyValue = [];
-    
+
     /**
      * Sets trait dependencies from other traits
      **/
@@ -31,16 +31,16 @@ trait CRUD{
     {
         $this->setTraitDependencies('CRUD', ['Messages']);
     }
-    
+
     /**
      * Processes route
      * @param array $route
      **/
     protected function processRouteTraitCRUD($route)
     {
-        
+
     }
-    
+
     /**
      * Processes configuration
      * @param array $configuration
@@ -57,18 +57,12 @@ trait CRUD{
             throw new \Exception(sprintf('missing CRUD inputFields configuration for subject %s', $this->name));
         }
     }
-    
+
     /**
      * init jobs
      **/
     public function initTraitCRUD()
     {
-        //TEMPLATE FUNCTIONS
-        //get primary key value(s)
-        $this->templateEngine->addFunction('extractPrimaryKeyValue', function ($record, $returnAs) {
-            return $this->extractPrimaryKeyValue($record, $returnAs);
-        });
-        
         //build path to global actions
         if(isset($this->configuration['subjects'][$this->name]['CRUD']['actions']['global'])) {
             foreach($this->configuration['subjects'][$this->name]['CRUD']['actions']['global'] as $action => $properties) {
@@ -86,7 +80,7 @@ trait CRUD{
             $this->setTemplateParameter('primaryKeyValue', $this->primaryKeyValue);
         }
     }
-    
+
     /**
      * Builds primary key value for a record
      * @param mixed $record array or object with record data;
@@ -106,9 +100,9 @@ trait CRUD{
             case 'a':
                 return $values;
             break;
-        }   
+        }
     }
-    
+
     /**
      * Purges primary key value for a record
      * @param mixed $record array or object with record data
@@ -123,7 +117,7 @@ trait CRUD{
             }
         }
     }
-    
+
     /**
      * Displays list table
      */
@@ -147,14 +141,14 @@ trait CRUD{
         $this->setTemplateParameter('records', $records);
         $this->renderTemplate();
     }
-    
+
     /**
      * Gets values for save forms, to be overridden by derived class
      */
     protected function getSaveFormValues()
     {
     }
-    
+
     /**
      * Gets multilanguage values
      */
@@ -175,7 +169,7 @@ trait CRUD{
             }
         }
     }
-    
+
     /**
      * Displays insert form
      */
@@ -188,7 +182,7 @@ trait CRUD{
         // render template
         $this->renderTemplate(sprintf('%s/save-form', $this->buildPrivatePathToSubject()));
     }
-    
+
     /**
      * Displays update form
      */
@@ -207,7 +201,7 @@ trait CRUD{
         // render template
         $this->renderTemplate(sprintf('%s/save-form', $this->buildPrivatePathToSubject()));
     }
-    
+
     /**
      * Displays delete form
      */
@@ -222,7 +216,7 @@ trait CRUD{
         // render template
         $this->renderTemplate();
     }
-    
+
     /**
      * Processes save input before save query, to be overridden by derived class in case of input processing needed
      * @param array $input
@@ -232,7 +226,7 @@ trait CRUD{
     {
         return $input;
     }
-    
+
     /**
      * Processes multilanguage save input before save query, to be overridden by derived class in case of input processing needed
      * @return null | array $input
@@ -274,7 +268,7 @@ trait CRUD{
         }
         return $inputByLanguage;
     }
-    
+
     /**
      * Insert record action
      * @param string $redirectAction
@@ -307,7 +301,7 @@ trait CRUD{
         $redirectAction = $redirectAction ? $redirectAction : 'list';
         $this->httpResponse = $this->httpResponse->withHeader('Location', $redirectAction);
     }
-    
+
     /**
      * Update record action
      * @param string $redirectAction
@@ -341,7 +335,7 @@ trait CRUD{
         $redirectAction = $redirectAction ? $redirectAction : 'list';
         $this->httpResponse = $this->httpResponse->withHeader('Location', $redirectAction);
     }
-    
+
     /**
      * Updates multilanguage fields
      * @param array $primaryKeyValue as plain value
@@ -363,7 +357,7 @@ trait CRUD{
             $this->queryBuilder->insert(array_merge($values, $fieldsValues));
         }
     }
-    
+
     /**
      * Updates multilanguage fields
      * @param array $primaryKeyValue as indexed array
@@ -383,7 +377,7 @@ trait CRUD{
             $this->queryBuilder->update($fieldsValues);
         }
     }
-    
+
     /**
      * Delete record action
      * @param string $redirectAction
@@ -409,7 +403,7 @@ trait CRUD{
         $redirectAction = $redirectAction ? $redirectAction : 'list';
         $this->httpResponse = $this->httpResponse->withHeader('Location', $redirectAction);
     }
-    
+
     /**
      * deletes multiple record
      */
@@ -434,7 +428,7 @@ trait CRUD{
         }
         //redirection to list action is performed by javascript into jquery post() success function
     }
-    
+
     /**
      * Moves record position up
      */
@@ -442,7 +436,7 @@ trait CRUD{
     {
         $this->move('up');
     }
-    
+
     /**
      * Moves record position down
      */
@@ -450,7 +444,7 @@ trait CRUD{
     {
         $this->move('down');
     }
-    
+
     /**
      * Moves record
      * @param string $direction up|down
