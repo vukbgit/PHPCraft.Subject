@@ -372,9 +372,21 @@ trait CRUD{
         foreach((array) $input as $languageCode => $fieldsValues) {
             $table = $this->table() . $this->configuration['subjects'][$this->name]['ORM']['multiLanguage']['suffix'];
             $this->queryBuilder->table($table);
+            //check if language translation is already inserted
             $this->primaryKeyWhere($primaryKeyValue);
             $this->queryBuilder->where($this->configuration['subjects'][$this->name]['ORM']['multiLanguage']['languagePK'], $languageCode);
-            $this->queryBuilder->update($fieldsValues);
+            $check = $this->queryBuilder->get();
+            //already inserted
+            if(!empty($check)) {
+                $this->queryBuilder->update($fieldsValues);
+            } else {
+            //not yet inserted (possibily language has been added)
+                $values = [
+                    $this->configuration['subjects'][$this->name]['ORM']['primaryKey'] => $primaryKeyValue[$this->configuration['subjects'][$this->name]['ORM']['primaryKey']],
+                    $this->configuration['subjects'][$this->name]['ORM']['multiLanguage']['languagePK'] => $languageCode
+                ];
+                $this->queryBuilder->insert(array_merge($values, $fieldsValues));
+            }
         }
     }
 
