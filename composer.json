@@ -19,7 +19,9 @@
         "phpcraft/template": "For template engine integration (Template trait)",
         "phpcraft/upload": "For upload functionalities (Upload trait)",
         "cocur/slugify": "to manage slug into URLs",
-        "hackzilla/password-generator": "for authentication password generation"
+        "hackzilla/password-generator": "for authentication password generation",
+        "dompdf/dompdf": "to generate PDFs from HTML templates",
+        "setasign/fpdi-fpdf": "to generate PDFs on top of other PDFs"
     },
     "autoload": {
         "psr-4" : {
