@@ -16,42 +16,42 @@ abstract class Subject
     * subject name
     **/
     public $name;
-    
+
     /**
     * HTTP objects
     **/
     protected $httpRequest;
     protected $httpResponse;
     protected $httpStream;
-    
+
     /**
     * called route
     **/
     protected $route;
-    
+
     /**
     * loaded configuration
     **/
     protected $configuration;
-    
+
     /**
     * loaded translations
     **/
     protected $translations;
-    
+
     /**
-    * traits injected objects (to check injection), set by 
+    * traits injected objects (to check injection), set by
     * array [trait-name] => [injection-property-name-1, injection-property-name-2, ...]
     **/
     protected $traitsInjections;
-    
+
     /**
     * traits dependencies from other traits (to avoid conflicts caused by overlapping 'use' statements)
     * set by traits setTraitDependenciesTrait-name methods
     * array [trait-name] => [required-other-trait-1, required-other-trait-2, ...]
     **/
     protected $traitsDependencies;
-    
+
     /**
     * Action can be set:
     *   - as route['parameters']['action'] element
@@ -59,24 +59,24 @@ abstract class Subject
     *   - by calling setAction method
     **/
     protected $action = false;
-    
+
     /**
     * sub portion of namespace for the subject, used also (lowercased) for sub-folder in configurations, procedure, templates, locales
     * hyphens (-) are stripped for namespace and kept for other paths
     **/
     protected $subNamespace;
-    
+
     /**
     * Subject ancestors in current route, each is an array:
     *           [subject=>SUBJECT, primaryKey[FIELD1=>VALUE1,...]]
     **/
     public $ancestors = [];
-    
+
     /**
     * Others subjects injected
     **/
     public $subjects = [];
-    
+
     /**
      * Constructor.
      * @param string $name of the subject
@@ -105,7 +105,7 @@ abstract class Subject
         $this->route = $route;
         $this->processConfiguration($configuration);
     }
-    
+
     /**
      * Utilized when reading data from inaccessible properties
      * @param string $propertyName
@@ -120,7 +120,7 @@ abstract class Subject
             throw new \Exception(sprintf('Undefined property %s', $propertyName));
         }
     }
-    
+
     /**
      * build class name
      * @param string $subjectName of the subject
@@ -134,7 +134,7 @@ abstract class Subject
         }
         return sprintf('%s\%s', $nameSpace, str_replace('-', '', ucwords($subjectName, '-')));
     }
-    
+
     /**
      * Subject factory
      * @param string $subjectName of the subject
@@ -162,7 +162,7 @@ abstract class Subject
             $subNamespace
         );
     }
-    
+
     /**
      * Injects another subject
      * @param \PHPCraft\Subject\Subject $subject
@@ -172,7 +172,7 @@ abstract class Subject
         $this->subjects[$subject->name] = $subject;
         $this->translations[$subject->name] = $subject->translations[$subject->name];
     }
-    
+
     /**
      * Gets a subject configuration
      * @param string $subjectName
@@ -189,7 +189,7 @@ abstract class Subject
             throw new \Exception(sprintf('configuration file not found for subject "%s" in path %s', $subjectName, $path));
         }
     }
-    
+
     /**
      * Gets traits used by class
      * @return array of used traits names
@@ -207,7 +207,7 @@ abstract class Subject
         }
         return $traits;
     }
-    
+
     /**
      * Sets trait dependencies
      **/
@@ -215,7 +215,7 @@ abstract class Subject
     {
         $this->traitsDependencies[$traitName] = $dependencies;
     }
-    
+
     /**
      * Loads traits dependencies from other traits
      **/
@@ -231,7 +231,7 @@ abstract class Subject
             }
         }
     }
-    
+
     /**
      * Checks whether traits required by another trait are used
      * @param string $traitName
@@ -249,7 +249,7 @@ abstract class Subject
             }
         }
     }
-    
+
     /**
      * Processes route
      * @param array $route
@@ -325,7 +325,7 @@ abstract class Subject
             }
         }
     }
-    
+
     /**
      * Processes configuration, checks for mandatory parameters, extracts found parameters
      * @param array $configuration
@@ -348,7 +348,7 @@ abstract class Subject
         //store
         $this->configuration =& $configuration;
     }
-    
+
     /**
      * builds path to subject for private folder
      **/
@@ -361,7 +361,7 @@ abstract class Subject
         }
         return $path;
     }
-    
+
     /**
      * builds path to area from route (for routing/template purposes)
      * @param $language language code to embed into URL when different from currently selected one
@@ -381,7 +381,7 @@ abstract class Subject
         }
         return $path;
     }
-    
+
     /**
      * builds path to subject from route (for routing/template purposes)
      * @param $language language code to embed into URL when different from currently selected one
@@ -401,7 +401,7 @@ abstract class Subject
         }
         return $path;
     }
-    
+
     /**
      * builds path to action from configurated action URL (if any) (for routing/template purposes)
      * @param string $action;
@@ -425,7 +425,7 @@ abstract class Subject
         $url = sprintf($url, $primaryKeyValue);
         return $url;
     }
-    
+
     /**
      * builds path to an ancestor
      **/
@@ -443,7 +443,7 @@ abstract class Subject
         }
         return $path;
     }
-    
+
     /**
      * Sets trait injection dependency
      **/
@@ -451,7 +451,7 @@ abstract class Subject
     {
         $this->traitsInjections[$traitName] = $injectedProperties;
     }
-    
+
     /**
      * Checks that injections needed by traits have been performed
      **/
@@ -467,7 +467,7 @@ abstract class Subject
             }
         }
     }
-    
+
     /**
      * Checks whether required objects for a trais have been injected
      * @param string $traitName
@@ -483,7 +483,7 @@ abstract class Subject
             }
         }
     }
-    
+
     /**
      * Performs initialization tasks needed by traits calling the optional initTraitTrait-name method
      **/
@@ -498,7 +498,7 @@ abstract class Subject
             }
         }
     }
-    
+
     /**
      * adds a translations ini file content to subject translations
      * @param string $key key of translations array to store file content into
@@ -514,7 +514,7 @@ abstract class Subject
             $this->translations[$key] = parse_ini_file($path,true);
         }
     }
-    
+
     /**
      * adds an application level translations with the assumption that is stored into private/application-name/current-language
      * @param string $key key of translations array to store file content into
@@ -526,7 +526,7 @@ abstract class Subject
         $path = sprintf('private/%s/locales/%s/%s', APPLICATION, LANGUAGE, $pathToIniFile);
         $this->loadTranslations($key, $path);
     }
-    
+
     /**
      * sets action
      * @param string $action
@@ -534,7 +534,7 @@ abstract class Subject
     public function setAction($action){
         $this->action = $action;
     }
-    
+
     /**
      * turns action from slug-like form (with -) to method name (camelcase)
      * @param string $action
@@ -548,7 +548,7 @@ abstract class Subject
             $action
         ));
     }
-    
+
     /**
      * tries to exec current action
      * @throws Exception if there is no action or method defined
