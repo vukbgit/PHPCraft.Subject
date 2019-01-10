@@ -170,7 +170,9 @@ abstract class Subject
     public function injectSubject(\PHPCraft\Subject\Subject $subject)
     {
         $this->subjects[$subject->name] = $subject;
-        $this->translations[$subject->name] = $subject->translations[$subject->name];
+        if(isset($subject->translations[$subject->name])) {
+            $this->translations[$subject->name] = $subject->translations[$subject->name];
+        }
     }
 
     /**
