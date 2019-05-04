@@ -113,7 +113,7 @@ trait ORM{
         foreach($this->ORMParameters['primaryKey'] as $field) {
             //check value
             if(!isset($primaryKeyValue[$field])) {
-                throw new \Exception(sprintf('missing field % value in where clause for table %s compound primary key', $field, $this->table()));
+                throw new \Exception(sprintf('missing field %s value in where clause for table %s compound primary key', $field, $this->table()));
             } else {
                 $this->queryBuilder->where($field, $primaryKeyValue[$field]);
             }
