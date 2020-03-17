@@ -50,7 +50,7 @@ trait PDF{
         }
         //default options from PDF
         if($this->pdfFromPdf) {
-            $this->pdfFromPdf->SetFont('Helvetica');
+            //$this->pdfFromPdf->SetFont('Helvetica');
         }
     }
 
@@ -119,7 +119,7 @@ trait PDF{
      * Injects PDF adapter to generate PDFs from other PDFs
      * @param  \FPDI $pdfFromHtml
      **/
-    public function injectPDFFromPdf(\setasign\Fpdi\Fpdi $pdfFromPdf)
+    public function injectPDFFromPdf($pdfFromPdf)
     {
         $this->pdfFromPdf = $pdfFromPdf;
     }
@@ -129,17 +129,38 @@ trait PDF{
      * @param string $path to PDF to be used as background
      * @param string $orientation: P(ortrait) | L(andscape)
      */
-    protected function setBackgroundFromPdf($path, $orientation)
+    protected function addPageFromPdf($orientation)
     {
         //add page
         $orientations = ['P' => 'Portrait', 'L' => 'Landscape'];
         $this->pdfFromPdf->AddPage($orientations[$orientation]);
+        $this->pdfFromPdf->SetY(0);
+    }
+    /**
+     * streams PDF from another PDF
+     * @param string $path to PDF to be used as background
+     * @param string $orientation: P(ortrait) | L(andscape)
+     */
+    protected function setBackgroundFromPdf($path, $orientation)
+    {
+        //add page
+        $this->addPageFromPdf($orientation);
         //set source file
         $this->pdfFromPdf->setSourceFile($path);
         // import page
         $tplIdx = $this->pdfFromPdf->importPage(1);
         // use the imported page, place itand set width
-        $this->pdfFromPdf->useTemplate($tplIdx, 0, 0, 297);
+        switch ($orientation) {
+            case 'L':
+                $width = 297;
+                $height = null;
+            break;
+            case 'P':
+                $width = null;
+                $height = 297;
+            break;
+        }
+        $this->pdfFromPdf->useTemplate($tplIdx, 0, 0, $width, $height);
     }
 
     /**
@@ -160,6 +181,28 @@ trait PDF{
         }
     }
 
+    /**
+     * Sets margin
+     * @param int $left
+     * @param int $top
+     * @param int $right
+     * @param int $AutoPageBreak
+     */
+    protected function fromPdfSetMargin($left = null, $top = null, $right = null, $AutoPageBreak = null)
+    {
+        if($left) {
+            $this->pdfFromPdf->SetLeftMargin($left);
+        }
+        if($top) {
+            $this->pdfFromPdf->SetTopMargin($top);
+        }
+        if($right) {
+            $this->pdfFromPdf->SetRightMargin($right);
+        }
+        if($AutoPageBreak !== null) {
+            $this->pdfFromPdf->SetAutoPageBreak($AutoPageBreak);
+        }
+    }
     /**
      * Sets font
      * @param int $size
@@ -188,6 +231,14 @@ trait PDF{
     }
 
     /**
+     * writes a new line
+     * @param int $height
+     */
+    protected function fromPdfNewLine($height = null)
+    {
+        $this->pdfFromPdf->Ln($height);
+    }
+    /**
      * writes a string
      * @param string $string
      * @param int $x
@@ -210,7 +261,52 @@ trait PDF{
         if($fontSize !== null || $fontFamily !== null || $fontStyle !== null || $fontColor !== null) {
             $this->fromPdfSetFont($fontSize, $fontFamily, $fontStyle, $fontColor);
         }
-        $this->pdfFromPdf->Write(0, $string);
+        $this->pdfFromPdf->Write(0, utf8_decode($string));
+        //$this->pdfFromPdf->Text($x, $y, $string);
+    }
+
+    /**
+     * writes a block of text
+     * @param string $string
+     * @param int $fontSize needed to set line height
+     * @param int $width
+     * @param int $x
+     * @param int $y
+     * @param string $align: L: left alignment, C: center, R: right alignment, J: justification (default value)
+     * @param string $fontFamily
+     * @param string $fontStyle: mask from B(old) + I(talic) + U(nderline)
+     * @param string $fontColor: array of RGB values or hexadecimal value (with optional leading #)
+     */
+    protected function fromPdfText($string, $fontSize, $width = null, $x = null, $y = null, $align = null, $fontFamily = null, $fontStyle = null, $fontColor = null)
+    {
+        //position
+        if($x !== null) {
+            $this->pdfFromPdf->SetX($x);
+        }
+        if($y !== null) {
+            $this->pdfFromPdf->SetY($y, false);
+        }
+        //font
+        if($fontSize !== null || $fontFamily !== null || $fontStyle !== null || $fontColor !== null) {
+            $this->fromPdfSetFont($fontSize, $fontFamily, $fontStyle, $fontColor);
+        }
+        $border = 0;
+        $this->pdfFromPdf->MultiCell($width, $fontSize * 0.5, utf8_decode($string), $border, $align);
+    }
+
+    /**
+     * adds an image
+     * @param string $path
+     * @param int $x
+     * @param int $y
+     * @param int $width
+     * @param int $height
+     * @param string $mimeType in case image has no extensione (i.e path is an url)
+     * @param string $link on image click
+     */
+    protected function fromPdfImage($path, $x = null, $y = null, $width = 0, $height = 0, $mimeType = 0, $link = null)
+    {
+        $this->pdfFromPdf->Image($path, $x, $y, $width, $height, $mimeType, $link);
     }
 
     /**
@@ -219,7 +315,7 @@ trait PDF{
      */
     protected function streamFromPdf($PDFName)
     {
-        $this->pdfFromPdf->Output('D', $PDFName);
+        $this->pdfFromPdf->Output($PDFName, 'D', true);
     }
 
     /**
@@ -228,6 +324,6 @@ trait PDF{
      */
     protected function fromPdfToString()
     {
-        return $this->pdfFromPdf->Output('S');
+        return $this->pdfFromPdf->Output('', 'S', true);
     }
 }
