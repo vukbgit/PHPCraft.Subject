@@ -38,13 +38,14 @@ trait PDF{
     {
         //default options from HTML
         if($this->pdfFromHtml) {
+            $documentRoot = $_SERVER['PHP_DOCUMENT_ROOT'] ?? $_SERVER['DOCUMENT_ROOT'];
             $this->pdfFromHtml->setOptions([
                 'defaultPaperSize' => 'A4',
                 //'defaultPaperOrientation' => 'landscape',
                 'defaultFont' => 'Helvetica',
-                'tempDir' => sprintf('%s/tmp', $_SERVER['PHP_DOCUMENT_ROOT']),
-                'fontDir' => sprintf('%s/tmp', $_SERVER['PHP_DOCUMENT_ROOT']),
-                'log_output_file' => sprintf('%s/tmp/log.html', $_SERVER['PHP_DOCUMENT_ROOT'])
+                'tempDir' => sprintf('%s/tmp', $documentRoot),
+                'fontDir' => sprintf('%s/tmp', $documentRoot),
+                'log_output_file' => sprintf('%s/tmp/log.html', $documentRoot)
             ]);
         }
         //default options from PDF
