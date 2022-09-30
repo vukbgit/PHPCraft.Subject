@@ -296,11 +296,17 @@ abstract class Subject
             if(!empty($this->ancestors[$subject]['primaryKeyValues']) && isset($configuration['ORM']['descFields'])) {
                 $schema = isset($configuration['ORM']['schema']) ? sprintf('%s.', $configuration['ORM']['schema']) : null;
                 $view = sprintf('%s%s', $schema, $configuration['ORM']['view']);
+                if(isset($configuration['ORM']['multiLanguage'])) {
+                    $view .= $configuration['ORM']['multiLanguage']['suffix'];
+                }
                 $this->connectToDb();
                 $this->queryBuilder
                 ->table($view);
                 foreach($this->ancestors[$subject]['primaryKeyValues'] as $field => $value) {
                     $this->queryBuilder->where($field, $value);
+                }
+                if(isset($configuration['ORM']['multiLanguage'])) {
+                    $this->queryBuilder->where($configuration['ORM']['multiLanguage']['languagePK'], LANGUAGE);
                 }
                 $this->ancestors[$subject]['record'] = current($this->queryBuilder->get());
             }

@@ -125,6 +125,14 @@ trait Template{
             $this->templateEngine->addFunction('customActionUrl', function ($record, $url) {
                 return $this->buildCustomActionUrl($record, $url);
             });
+            //custom path to action
+            $this->templateEngine->addFunction(
+              'dump',
+              function ($var) {
+                r($var);
+              },
+              ['is_safe' => ['html']]
+            );
         }
         //crud functions
         if(($this->hasCRUD && !$onlyUnregistered) || ($onlyUnregistered && !$this->hasCRUD)) {

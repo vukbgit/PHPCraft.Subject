@@ -62,6 +62,7 @@ trait Mail{
      **/
     protected function setSMTP($host, $port, $username = false, $password = false, $security = false)
     {
+      $this->CharSet = PHPMailer::CHARSET_UTF8;
         $this->mailer->IsSMTP();
         $this->mailer->Host = $host;
         if($username && $password) {
