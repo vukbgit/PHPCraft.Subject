@@ -517,7 +517,8 @@ abstract class Subject
     {
         $path = $pathToIniFile;
         if(!is_file($path)) {
-            throw new \InvalidArgumentException(sprintf("Translation file not found into path %s", $path));
+          //language code might be wrong also in case of bad routes, no need to block http error handling
+          //throw new \InvalidArgumentException(sprintf("Translation file not found into path %s", $path));
         } else {
             $this->translations[$key] = parse_ini_file($path,true);
         }
